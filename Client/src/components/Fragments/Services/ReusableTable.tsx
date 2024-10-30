@@ -12,6 +12,7 @@ import Swal from "sweetalert2";
 import { TbEyeSearch } from "react-icons/tb";
 // import { ConflictModal } from "./ConflictModal"; // Import komponen modal baru
 export const ReusableTable = ({
+  // TODO : refactor jadi untuk table saja anjay
   get,
   set,
   CustomHandleAdd,
@@ -28,11 +29,10 @@ export const ReusableTable = ({
   NoPd,
   filterSagIso,
 }) => {
-  const { token } = useToken(); // Ambil token dari context
+  const { userDetails } = useToken(); // Ambil token dari context
   let userRole = "";
-  if (token) {
-    const decoded = jwtDecode(token);
-    userRole = decoded.role;
+  if (userDetails) {
+    userRole = userDetails.role;
   }
 
   // File
