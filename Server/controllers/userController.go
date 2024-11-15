@@ -128,13 +128,13 @@ func Logout(c *gin.Context) {
 	// Ambil userID dari context
 	userID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID tidak ditemukan"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "User ID tidak ditemukan"})
 		return
 	}
 
 	// Hapus token dari database
 	if err := initializers.DB.Where("user_id = ?", userID).Delete(&models.UserToken{}).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Gagal menghapus token"})
 		return
 	}
 
@@ -146,7 +146,7 @@ func Logout(c *gin.Context) {
 		MaxAge: -1, // Menghapus cookie
 	})
 
-	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+	c.JSON(http.StatusOK,  "Logged out successfully")
 }
 
 func UserIndex(c *gin.Context) {
@@ -156,9 +156,7 @@ func UserIndex(c *gin.Context) {
 	initializers.DB.Find(&users)
 
 	//Respond with them
-	c.JSON(200, gin.H{
-		"users": users,
-	})
+	c.JSON(200, users)
 }
 
 func UserUpdate(c *gin.Context) {
@@ -177,7 +175,7 @@ func UserUpdate(c *gin.Context) {
 	initializers.DB.First(&users, id)
 
 	if err := initializers.DB.First(&users, id).Error; err != nil {
-		c.JSON(404, gin.H{"error": "user tidak ditemukan"})
+		c.JSON(404, gin.H{"message": "user tidak ditemukan"})
 		return
 	}
 
@@ -200,9 +198,7 @@ func UserUpdate(c *gin.Context) {
 
 	initializers.DB.Model(&users).Updates(users)
 
-	c.JSON(200, gin.H{
-		"users": users,
-	})
+	c.JSON(200, users)
 
 }
 
@@ -225,7 +221,5 @@ func UserDelete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"users": "users deleted",
-	})
+	c.JSON(200, "users deleted")
 }

@@ -1,8 +1,8 @@
-import { RealtimeClock, RealtimeDate } from "@/Utilities/RealtimeClock";
+import { RealtimeClock, RealtimeDate } from "@/Utils/RealtimeClock";
 import { Label } from "../ui/label";
-import Notification from "../Notification";
+import Notification from "../Fragments/Services/Notification";
 
-export default function Header({ title }: { title: string }) {
+export default function Header({ title }: { title: string | undefined }) {
   return (
     <header className="mx-4 mt-2 flex justify-between border-b-2 border-gray-100">
       <div className="flex gap-2 items-end m-2">
@@ -20,7 +20,8 @@ export default function Header({ title }: { title: string }) {
         <Label className="truncate text-sm font-medium ring-2 p-1.5 rounded bg-slate-50">
           {RealtimeDate()}
         </Label>
-        <Notification />
+        {/* //TODO: Rombak notif */}
+        {/* <Notification /> */}
       </div>
     </header>
   );

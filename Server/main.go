@@ -4,6 +4,8 @@ import (
 	"project-its/controllers"
 	"project-its/initializers"
 	"project-its/middleware"
+
+	// "project-its/middleware"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -37,29 +39,29 @@ func main() {
 	}))
 
 	// Route yang tidak memerlukan autentikasi
-	r.POST("/register", controllers.Register)
 	r.POST("/login", controllers.Login)
-
+	
 	// Terapkan middleware autentikasi ke semua route selanjutnya
 	r.Use(middleware.TokenAuthMiddleware())
-
+	
 	// Routes for User
 	store := cookie.NewStore([]byte("secret"))
 	r.Use(sessions.Sessions("mysession", store))
-
+	
 	// r.GET("/updateAll", controllers.UpdateAllSheets)
 	r.GET("/exportAll", controllers.ExportAllSheets)
-
+	
 	// Setup session store
 	store = cookie.NewStore([]byte("secret"))
 	r.Use(sessions.Sessions("mysession", store))
 
 	// logout must be after middleware
 	r.POST("/logout", controllers.Logout)
-
+	
 	r.GET("/user", controllers.UserIndex)
-	r.PUT("/user/:id", controllers.UserUpdate)
+	r.POST("/user", controllers.Register)
 	r.DELETE("/user/:id", controllers.UserDelete)
+	r.PUT("/user/:id", controllers.UserUpdate)
 
 	// Routes for MeetingList
 	r.GET("/meetingSchedule", controllers.MeetingListIndex)

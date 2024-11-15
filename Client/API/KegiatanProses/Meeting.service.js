@@ -41,7 +41,6 @@ export function getMeetingShow(id) {
   return axios
     .get(`${API_URL}/${id}`)
     .then((response) => {
-      console.log(response.data.meeting);
       return response.data.meeting;
     })
     .catch((error) => {

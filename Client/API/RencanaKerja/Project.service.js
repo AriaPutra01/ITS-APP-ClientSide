@@ -41,7 +41,6 @@ export function getProjectShow(id) {
   return axios
     .get(`${API_URL}/${id}`)
     .then((response) => {
-      console.log(response.data.project);
       return response.data.project;
     })
     .catch((error) => {

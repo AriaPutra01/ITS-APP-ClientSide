@@ -9,6 +9,7 @@ import {
 
 type SidebarContextType = {
   expanded: boolean;
+  open: () => void;
 };
 
 const SidebarContext = createContext({} as SidebarContextType);
@@ -20,60 +21,55 @@ export default function Sidebar({
   username,
   email,
 }: any) {
-  const [expanded, setExpanded] = useState(true);
-
+  const [expanded, setExpanded] = useState(false);
+  const open = () => setExpanded(true);
   return (
-    <aside className="h-screen">
-      <nav className="h-full flex flex-col bg-white border-r shadow-sm transition-all ">
-        <div className="py-3 px-4 flex justify-between items-center">
-          <div className="flex items-center gap-x-2">
-            <img
-              src={img}
-              className={`overflow-hidden transition-all ${
-                expanded ? "w-8" : "w-0"
-              }`}
-              alt=""
-            />
-            {expanded && (
-              <span className="text-gray-600 font-bold text-xl">{title}</span>
-            )}
-          </div>
-          <button
-            onClick={() => {
-              setExpanded((curr) => !curr);
-            }}
-            className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 transition-colors">
-            {expanded ? <ChevronFirst /> : <ChevronLast />}
-          </button>
-        </div>
-
-        <SidebarContext.Provider value={{ expanded }}>
-          <ul className="flex-1 px-3">{children}</ul>
-        </SidebarContext.Provider>
-
-        <div
-          className={`border-t-2 flex justify-${
-            expanded ? "start" : "center"
-          } items-center p-3`}>
+    <aside className="h-full flex flex-col bg-white border-r shadow-sm transition-all ">
+      <div className="py-3 px-4 flex justify-between items-center">
+        <div className="flex items-center gap-x-2">
           <img
             src={img}
+            className={`overflow-hidden transition-all ${
+              expanded ? "w-8" : "w-0"
+            }`}
             alt=""
-            className={`${expanded ? "w-0" : "w-8"} transition-all rounded-md`}
           />
+          {expanded && (
+            <span className="text-gray-600 font-bold text-xl">{title}</span>
+          )}
+        </div>
+        <button
+          onClick={() => {
+            setExpanded((curr) => !curr);
+          }}
+          className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 transition-colors">
+          {expanded ? <ChevronFirst /> : <ChevronLast />}
+        </button>
+      </div>
 
-          <div
-            className={`
+      <SidebarContext.Provider value={{ expanded, open }}>
+        <ul className="flex-1 px-3 overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+          {children}
+        </ul>
+      </SidebarContext.Provider>
+
+      <div
+        className={`border-t-2 flex justify-${
+          expanded ? "start" : "center"
+        } items-center p-3`}>
+        <img src={img} alt="" className="w-8 transition-all rounded-md" />
+        <div
+          className={`
               flex justify-between items-center
-              overflow-hidden transition-all ${expanded ? "w-44 ml-4" : "w-0"}
+              overflow-hidden transition-all
+              ${expanded ? "w-full" : "w-0"}
           `}>
-            <div className="leading-4">
-              <h4 className="font-semibold">{username}</h4>
-              <span className="text-xs text-gray-600">{email}</span>
-            </div>
-            {/* <MoreVertical size={20} /> */}
+          <div className="leading-4 ps-[1rem]">
+            <h4 className="font-semibold">{username}</h4>
+            <span className="text-xs text-gray-600">{email}</span>
           </div>
         </div>
-      </nav>
+      </div>
     </aside>
   );
 }
@@ -85,14 +81,13 @@ export function SidebarItem({
   text,
   alert,
 }: any) {
-  const { expanded } = useContext(SidebarContext);
-  const location = useLocation(); // Dapatkan path saat ini
-  const active = location.pathname === href; // Tentukan apakah item aktif
-
+  const { expanded, open } = useContext(SidebarContext);
+  const location = useLocation();
+  const active = location.pathname === href;
   return (
     <li>
       <Link
-        onClick={onClick}
+        onClick={onClick || open}
         className={`
         relative flex items-center py-2 px-3 my-1
         font-medium rounded-md cursor-pointer
@@ -107,7 +102,7 @@ export function SidebarItem({
         {icon}
         <span
           className={`overflow-hidden transition-all ${
-            expanded ? "w-44 ml-4" : "w-0"
+            expanded ? "ml-[1rem]" : "w-0"
           }`}>
           {text}
         </span>
@@ -119,25 +114,13 @@ export function SidebarItem({
             }`}
           />
         )}
-
-        {!expanded && (
-          <div
-            className={`
-          absolute z-10 left-full rounded-md px-2 py-1 ml-6
-          bg-sky-100 text-sky-800 hover:scale-110 hover:ring-2 text-sm
-          invisible opacity-20 -translate-x-3 transition-all
-          group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
-          `}>
-            {text}
-          </div>
-        )}
       </Link>
     </li>
   );
 }
 
 export function SidebarCollapse({ children, icon, text, alert }: any) {
-  const { expanded } = useContext(SidebarContext);
+  const { expanded, open } = useContext(SidebarContext);
   const [drop, setDrop] = useState(false);
   const location = useLocation(); // Dapatkan path saat ini
 
@@ -159,20 +142,22 @@ export function SidebarCollapse({ children, icon, text, alert }: any) {
           if (expanded) {
             setDrop((curr) => !curr);
           }
+          open();
         }}
-        className={`relative flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors group ${
+        className={`relative flex justify-between items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors group ${
           isChildActive
             ? "bg-gradient-to-tr from-sky-200 to-sky-100 text-sky-800"
             : "hover:bg-sky-50 text-gray-600"
         }`}>
-        {icon}
-
-        <span
-          className={`overflow-hidden transition-all ${
-            expanded ? "w-44 ml-4" : "w-0"
-          }`}>
-          {text}
-        </span>
+        <div className="flex justify-center items-center gap-[.5rem]">
+          {icon}
+          <span
+            className={`overflow-hidden transition-all ${
+              expanded ? "w-44 ml-4" : "w-0"
+            }`}>
+            {text}
+          </span>
+        </div>
 
         {expanded && (drop ? <MdKeyboardArrowUp /> : <MdKeyboardArrowDown />)}
 
@@ -183,22 +168,6 @@ export function SidebarCollapse({ children, icon, text, alert }: any) {
             }`}
           />
         )}
-
-        {!expanded &&
-          children.map((child: any, index: number) => {
-            return (
-              <div key={index} className="relative group">
-                <Link
-                  to={child.props.href}
-                  className={`absolute z-10 left-full rounded-md px-2 py-1 ml-6 bg-sky-100 text-sky-800 hover:scale-110 hover:ring-2 text-sm invisible opacity-20 -translate-x-3 transition-all group-hover:visible group-hover:opacity-100 group-hover:translate-x-0`}
-                  style={{ marginTop: `${index * 2}rem` }}>
-                  <span className="w-max">
-                    {child.props.text.replace(/\s+/g, "")}
-                  </span>
-                </Link>
-              </div>
-            );
-          })}
       </li>
 
       {expanded && (

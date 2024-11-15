@@ -1,226 +1,182 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
 import "./index.css";
+import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-// Auth
-import { TokenProvider } from "@/context/TokenContext";
-import { LoginPage } from "@/pages/Auth/LoginPage";
-import { RegisterPage } from "@/pages/Auth/RegisterPage";
-// User
-import { UserPage } from "@/pages/Services/Users/UserPage";
-// Welcome
-import { WelcomePage } from "@/pages/Welcome/Welcome";
-// Dashboard
-import ErrorPage from "@/pages/Error/404";
-import { DashboardPage } from "@/pages/Dashboard/Dashboard";
-// Dokumen
-import { MemoPage } from "@/pages/Services/Dokumen/MemoPage";
-import { BeritaAcaraPage } from "@/pages/Services/Dokumen/BeritaAcaraPage";
-import { SkPage } from "@/pages/Services/Dokumen/SkPage";
-import { SuratPage } from "@/pages/Services/Dokumen/SuratPage";
-import { PerdinPage } from "@/pages/Services/Dokumen/PerjalananDinasPage";
-// Rencana Kerja
-import { ProjectPage } from "@/pages/Services/RencanaKerja/ProjectPage";
-import { BaseProjectPage } from "@/pages/Services/RencanaKerja/BaseProjectPage";
-// Kegiatan Proses
-import { TimelineProjectPage } from "@/pages/Services/KegiatanProses/TimelineProjectPage";
-import { TimelineDesktopPage } from "@/pages/Services/KegiatanProses/TimelineDesktopPage";
-import { MeetingPage } from "@/pages/Services/KegiatanProses/MeetingPage";
-import { MeetingListPage } from "@/pages/Services/KegiatanProses/MeetingListPage";
-import { BookingRapatPage } from "@/pages/Services/KegiatanProses/BookingRapatPage";
-import { JadwalRapatPage } from "@/pages/Services/KegiatanProses/JadwalRapatPage";
-import { JadwalCutiPage } from "@/pages/Services/KegiatanProses/JadwalCutiPage";
-// Data Informasi
-import { SuratMasukPage } from "@/pages/Services/DataInformasi/SuratMasukPage";
-import { SuratKeluarPage } from "@/pages/Services/DataInformasi/SuratKeluarPage";
-import { ArsipPage } from "@/pages/Services/DataInformasi/ArsipPage";
-//request
-import { RequestPage } from "@/pages/Services/Request/requestPage";
-import axios from "axios";
-import { IsLogin } from "./context/middleware";
-axios.defaults.withCredentials = true; // Izinkan pengiriman cookie
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Menit } from "@/lib/time";
+import { TokenProvider } from "./features/MainData/hooks/useToken";
+// AUTH
+import { Login } from "@/features/Auth/pages/Login";
+// USER
+import User from "@/features/MainData/pages/User";
+// WELCOME
+import Welcome from "@/pages/Welcome";
+import NotFound from "@/pages/Error/404";
+// DASHBOARD
+import Dashboard from "@/pages/Dashboard";
+// DOKUMEN
+import Memo from "@/features/MainData/pages/Dokumen/Memo";
+import { BeritaAcaraPage } from "@/features/MainData/pages/Dokumen/BeritaAcaraPage";
+import { SkPage } from "@/features/MainData/pages/Dokumen/SkPage";
+import { SuratPage } from "@/features/MainData/pages/Dokumen/SuratPage";
+import { PerdinPage } from "@/features/MainData/pages/Dokumen/PerjalananDinasPage";
+// RENCANA KERJA
+import { ProjectPage } from "@/features/MainData/pages/RencanaKerja/ProjectPage";
+import { BaseProjectPage } from "@/features/MainData/pages/RencanaKerja/BaseProjectPage";
+// KEGIATAN PROSES
+import { TimelineDesktopPage } from "@/features/MainData/pages/KegiatanProses/TimelineDesktopPage";
+import { MeetingPage } from "@/features/MainData/pages/KegiatanProses/MeetingPage";
+import { BookingRapatPage } from "@/features/MainData/pages/KegiatanProses/BookingRapatPage";
+import { JadwalRapatPage } from "@/features/MainData/pages/KegiatanProses/JadwalRapatPage";
+import { JadwalCutiPage } from "@/features/MainData/pages/KegiatanProses/JadwalCutiPage";
+// WEEKLY MEETING
+import { TimelineProjectPage } from "@/features/MainData/pages/KegiatanProses/TimelineProjectPage";
+import { MeetingListPage } from "@/features/MainData/pages/KegiatanProses/MeetingListPage";
+// DATA INFORMASI
+import { SuratMasukPage } from "@/features/MainData/pages/DataInformasi/SuratMasukPage";
+import { SuratKeluarPage } from "@/features/MainData/pages/DataInformasi/SuratKeluarPage";
+import { ArsipPage } from "@/features/MainData/pages/DataInformasi/ArsipPage";
+//REQUEST
+import { RequestPage } from "@/features/MainData/pages/Request/requestPage";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      select: (data: any) => data?.data || [],
+      refetchIntervalInBackground: true,
+      staleTime: Menit(10),
+    },
+  },
+});
 
 const router = createBrowserRouter([
-  // welcome
-  { path: "/", element: <WelcomePage />, errorElement: <ErrorPage /> },
-  // auth
-  { path: "/login", element: <LoginPage /> },
+  // WELCOME
   {
-    path: "/add-user",
-    element: (
-      <IsLogin>
-        <RegisterPage />
-      </IsLogin>
-    ),
+    //* DONE
+    path: "/",
+    element: <Welcome />,
+    errorElement: <NotFound />,
   },
-  //user
+  // AUTH
   {
+    //* DONE
+    path: "/login",
+    element: <Login />,
+  },
+  // USER
+  {
+    //* DONE
     path: "/user",
-    element: (
-      <IsLogin>
-        <UserPage />
-      </IsLogin>
-    ),
+    element: <User />,
   },
-  // dashboard
+  // DASHBOARD
   {
+    //* DONE
     path: "/dashboard",
-    element: (
-      <IsLogin>
-        <DashboardPage />
-      </IsLogin>
-    ),
+    element: <Dashboard />,
   },
-  // Dokumen
+  // DOKUMEN
   {
+    //* DONE
     path: "/memo",
-    element: (
-      <IsLogin>
-        <MemoPage />
-      </IsLogin>
-    ),
+    element: <Memo />,
   },
   {
+    //? PROGRESS
     path: "/berita-acara",
-    element: (
-      <IsLogin>
-        <BeritaAcaraPage />
-      </IsLogin>
-    ),
+    element: <BeritaAcaraPage />,
   },
   {
+    //TODO
     path: "/sk",
-    element: (
-      <IsLogin>
-        <SkPage />
-      </IsLogin>
-    ),
+    element: <SkPage />,
   },
   {
+    //TODO
     path: "/surat",
-    element: (
-      <IsLogin>
-        <SuratPage />
-      </IsLogin>
-    ),
+    element: <SuratPage />,
   },
   {
+    //TODO
     path: "/perjalanan-dinas",
-    element: (
-      <IsLogin>
-        <PerdinPage />
-      </IsLogin>
-    ),
+    element: <PerdinPage />,
   },
-  // Rencana Kerja
+  // RENCANA KERJA
   {
+    //TODO
     path: "/project",
-    element: (
-      <IsLogin>
-        <ProjectPage />
-      </IsLogin>
-    ),
+    element: <ProjectPage />,
   },
   {
+    //TODO
     path: "/base-project",
-    element: (
-      <IsLogin>
-        <BaseProjectPage />
-      </IsLogin>
-    ),
+    element: <BaseProjectPage />,
   },
-  // Kegiatan Proses
+  // KEGIATAN PROSES
   {
-    path: "/timeline-project",
-    element: (
-      <IsLogin>
-        <TimelineProjectPage />
-      </IsLogin>
-    ),
-  },
-  {
+    //TODO
     path: "/timeline-desktop",
-    element: (
-      <IsLogin>
-        <TimelineDesktopPage />
-      </IsLogin>
-    ),
+    element: <TimelineDesktopPage />,
   },
   {
+    //TODO
     path: "/booking-rapat",
-    element: (
-      <IsLogin>
-        <BookingRapatPage />
-      </IsLogin>
-    ),
+    element: <BookingRapatPage />,
   },
   {
+    //TODO
     path: "/jadwal-rapat",
-    element: (
-      <IsLogin>
-        <JadwalRapatPage />
-      </IsLogin>
-    ),
+    element: <JadwalRapatPage />,
   },
   {
+    //TODO
     path: "/jadwal-cuti",
-    element: (
-      <IsLogin>
-        <JadwalCutiPage />
-      </IsLogin>
-    ),
+    element: <JadwalCutiPage />,
   },
   {
+    //TODO
     path: "/meeting",
-    element: (
-      <IsLogin>
-        <MeetingPage />
-      </IsLogin>
-    ),
+    element: <MeetingPage />,
+  },
+  // WEEKLY MEETING
+  {
+    //TODO
+    path: "/timeline-project",
+    element: <TimelineProjectPage />,
   },
   {
+    //TODO
     path: "/meeting-schedule",
-    element: (
-      <IsLogin>
-        <MeetingListPage />
-      </IsLogin>
-    ),
+    element: <MeetingListPage />,
   },
-  // Data Informasi
+  // DATA & INFORMASI
   {
+    //TODO
     path: "/surat-masuk",
-    element: (
-      <IsLogin>
-        <SuratMasukPage />
-      </IsLogin>
-    ),
+    element: <SuratMasukPage />,
   },
   {
+    //TODO
     path: "/surat-keluar",
-    element: (
-      <IsLogin>
-        <SuratKeluarPage />
-      </IsLogin>
-    ),
+    element: <SuratKeluarPage />,
   },
   {
+    //TODO
     path: "/arsip",
-    element: (
-      <IsLogin>
-        <ArsipPage />
-      </IsLogin>
-    ),
+    element: <ArsipPage />,
   },
   {
+    //TODO
     path: "/request",
     element: <RequestPage />,
   },
 ]);
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <QueryClientProvider client={queryClient}>
     <TokenProvider>
       <RouterProvider router={router} />
     </TokenProvider>
-  </React.StrictMode>
+    <ReactQueryDevtools initialIsOpen={false} />
+  </QueryClientProvider>
 );

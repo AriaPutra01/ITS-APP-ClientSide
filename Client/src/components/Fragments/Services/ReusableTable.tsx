@@ -1,15 +1,15 @@
-import { FormatDate } from "@/Utilities/FormatDate";
+import { FormatDate } from "@/Utils/FormatDate";
 import { ReusableForm } from "./ReusableForm";
 import { useEffect, useMemo, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import DataTable from "react-data-table-component";
 import { Button, Checkbox, Dropdown, Label, Modal } from "flowbite-react";
 import SearchInput from "@/components/Elements/SearchInput";
-import { useToken } from "@/context/TokenContext";
-import { Excel } from "@/Utilities/Excel";
+import { Excel } from "@/Utils/Excel";
 import { FaUpload } from "react-icons/fa"; // Tambahkan ikon upload
 import Swal from "sweetalert2";
 import { TbEyeSearch } from "react-icons/tb";
+import { useToken } from "@/features/MainData/hooks/useToken";
 // import { ConflictModal } from "./ConflictModal"; // Import komponen modal baru
 export const ReusableTable = ({
   // TODO : refactor jadi untuk table saja anjay
@@ -29,7 +29,7 @@ export const ReusableTable = ({
   NoPd,
   filterSagIso,
 }) => {
-  const { userDetails } = useToken(); // Ambil token dari context
+  const { userDetails } = useToken();
   let userRole = "";
   if (userDetails) {
     userRole = userDetails.role;
@@ -134,7 +134,6 @@ export const ReusableTable = ({
   };
 
   const handleEdit = (MainData) => {
-    console.log("Data yang terambil untuk edit:", MainData); // Log data yang terambil
     setFormModalOpen(true);
     setFormConfig((prevConfig) => ({
       ...prevConfig,
@@ -642,7 +641,7 @@ const FileUploadModal = ({
   selectedId,
   UploadArsip,
 }) => {
-  const { token } = useToken(); // Ambil token dari context
+  const { token, userDetails } = useToken(); // Ambil token dari context
   let userRole = "";
   if (token) {
     const decoded = jwtDecode(token);

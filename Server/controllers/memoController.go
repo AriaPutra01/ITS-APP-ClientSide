@@ -89,7 +89,7 @@ func GetFilesByIDMemo(c *gin.Context) {
 		fileNames = append(fileNames, file.FileName)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"files": fileNames})
+	c.JSON(http.StatusOK,  fileNames)
 }
 
 func DeleteFileHandlerMemo(c *gin.Context) {
@@ -141,14 +141,14 @@ func DownloadFileHandlerMemo(c *gin.Context) {
 	result := initializers.DB.Where("file_path = ?", fullPath).First(&file)
 	if result.Error != nil {
 		log.Printf("File not found in database: %v", result.Error)
-		c.JSON(http.StatusNotFound, gin.H{"error": "File tidak ditemukan"})
+		c.JSON(http.StatusNotFound, gin.H{"message": "File tidak ditemukan"})
 		return
 	}
 
 	// Periksa keberadaan file di sistem file
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		log.Printf("File not found in system: %s", fullPath)
-		c.JSON(http.StatusNotFound, gin.H{"error": "File tidak ditemukan di sistem file"})
+		c.JSON(http.StatusNotFound, gin.H{"message": "File tidak ditemukan di sistem file"})
 		return
 	}
 
@@ -186,9 +186,7 @@ func MemoIndex(c *gin.Context) {
 
 	initializers.DB.Find(&memosag)
 
-	c.JSON(200, gin.H{
-		"memo": memosag,
-	})
+	c.JSON(200, memosag)
 
 }
 
@@ -253,14 +251,12 @@ func MemoCreate(c *gin.Context) {
 	result := initializers.DB.Create(&memosag)
 	if result.Error != nil {
 		log.Printf("Error saving memo: %v", result.Error)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Memo Sag"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create Memo Sag"})
 		return
 	}
 	log.Printf("Memo created successfully: %v", memosag)
 
-	c.JSON(201, gin.H{
-		"memo": memosag,
-	})
+	c.JSON(201, memosag)
 }
 
 func MemoShow(c *gin.Context) {

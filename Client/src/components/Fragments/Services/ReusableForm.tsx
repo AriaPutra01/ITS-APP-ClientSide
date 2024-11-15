@@ -6,7 +6,6 @@ interface FormField {
   label: string;
   type: string;
   options?: string[];
-  required: boolean;
 }
 interface FormConfig {
   fields: FormField[];
@@ -20,7 +19,7 @@ interface ReusableFormProps {
   setFormData: (data: any) => void;
 }
 
-export const  ReusableForm = ({
+export const ReusableForm = ({
   config,
   formData,
   setFormData,
@@ -69,8 +68,7 @@ export const  ReusableForm = ({
         {config.fields.map((field, index) => (
           <div
             className={`col-span-2 ${index % 2 === 0 && "last:col-span-4"}`}
-            key={index}
-          >
+            key={index}>
             <div className="mb-2 block">
               <Label htmlFor={field.name} value={field.label} />
             </div>
@@ -100,8 +98,7 @@ export const  ReusableForm = ({
                       name={field.name} // Pastikan name ditambahkan
                       value={formData[field.name] || ""} // Pastikan value diatur
                       onChange={handleInputChange} // Tambahkan onChange
-                      required={field.required}
-                    >
+                      required={field.required}>
                       <option value="" disabled defaultValue="readonly">
                         Pilih...
                       </option>
@@ -134,8 +131,7 @@ export const  ReusableForm = ({
       <Button
         className="w-full"
         color={config.action === "add" ? "info" : "warning"}
-        type="submit"
-      >
+        type="submit">
         {config.action === "add" ? "Tambah" : "Ubah"}
       </Button>
     </form>
