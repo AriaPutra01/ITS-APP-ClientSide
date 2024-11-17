@@ -1,0 +1,207 @@
+import { useMemo } from "react";
+import App from "@/components/Layouts/App";
+import Table from "@/features/MainData/components/Sections/Table/DynamicTable";
+import FilterTableCell from "@/Utils/FilterTableCell";
+import { TableLoading } from "@/features/MainData/components/Elements/Loading/TableLoading";
+import { useFilter } from "@/features/MainData/hooks/useFilter";
+import {
+  useFetchData,
+  useDeleteData,
+  usePutData,
+  usePostData,
+} from "@/features/MainData/hooks/useAPI";
+import { useFormStore } from "../../store/FormStore";
+import { UploadFields } from "@/config/config/Upload";
+import { useSelectionDeletion } from "../../hooks/useSelectionDeletion";
+import ShowDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/ShowDialog";
+import AddForm from "@/features/MainData/components/Sections/Table/Actions/Columns/AddForm";
+import DeleteDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/DeleteDialog";
+import EditForm from "@/features/MainData/components/Sections/Table/Actions/Columns/EditForm";
+import UploadForm from "@/features/MainData/components/Sections/Table/Actions/Columns/UploadForm";
+import { useToken } from "@/features/MainData/hooks/useToken";
+import { extractMiddle } from "@/features/MainData/hooks/useFormat";
+// SK
+import { SkFields } from "@/features/MainData/config/formFields/Dokumen/Sk";
+
+export default function Sk() {
+  // TOKEN
+  const { userDetails } = useToken();
+
+  // FORM STORE
+  const { initialData, setInitialData, setFields } = useFormStore();
+  
+  // FETCH & MUTATION HOOKs
+  const { data: Sk, isLoading } = useFetchData({
+    queryKey: ["sks"],
+    axios: {
+      url: "/sk",
+    },
+  });
+  const PostSk = usePostData({
+    axios: {
+      url: "/sk",
+    },
+  });
+  const DeleteSk = useDeleteData({
+    axios: {
+      url: "/sk",
+    },
+  });
+  const PutSk = usePutData({
+    axios: {
+      url: "/sk",
+      id: initialData.ID,
+    },
+  });
+
+  // COLUMN
+  const columns = useMemo(() => {
+    const baseColumns = SkFields.map((field) => ({
+      name: field.label,
+      selector: (row: any) => FilterTableCell(field, row[field.name]),
+      sortable: true,
+    }));
+
+    const actionColumns = [
+      {
+        name: "Action By",
+        selector: (row: any) => row.create_by,
+        sortable: true,
+      },
+      {
+        name: "Action",
+        cell: (data: any) => (
+          <div className="flex gap-1">
+            <ShowDialog
+              title={`Form detail data ${initialData?.no_surat}`}
+              event={{
+                onOpen: () => {
+                  setFields([
+                    ...SkFields,
+                    { name: "create_by", label: "Action By" },
+                  ]);
+                  setInitialData(data);
+                },
+                onClose: () => {
+                  setFields([]);
+                  setInitialData({});
+                },
+              }}
+            />
+            <DeleteDialog
+              title={`Hapus data ${initialData?.no_surat}`}
+              event={{
+                onOpen: () => setInitialData(data),
+                onClose: () => setInitialData({}),
+              }}
+              form={{
+                id: initialData.ID,
+                mutation: DeleteSk,
+                queryKey: ["sks"],
+              }}
+            />
+            <EditForm
+              title={`Form edit data ${initialData?.no_surat}`}
+              event={{
+                onOpen: () => {
+                  setFields(SkFields);
+                  setInitialData({...data, no_surat: extractMiddle(data.no_surat)});
+                },
+                onClose: () => {
+                  setFields([]);
+                  setInitialData({});
+                },
+              }}
+              form={{
+                mutation: PutSk,
+                queryKey: ["sks"],
+              }}
+            />
+            <UploadForm
+              title={`Form upload data ${initialData?.no_surat}`}
+              event={{
+                onOpen: () => {
+                  setFields(UploadFields);
+                  setInitialData(data);
+                },
+                onClose: () => {
+                  setFields([]);
+                  setInitialData({});
+                },
+              }}
+              url={{
+                getUrl: "/filesSk",
+                postUrl: "/uploadFileSk",
+                downloadUrl: "/downloadSk",
+                deleteUrl: "/deleteSk",
+              }}
+            />
+          </div>
+        ),
+      },
+    ];
+
+    return [...baseColumns, ...actionColumns];
+  }, [SkFields, initialData]);
+
+  // DELETE SELECTION
+  const { handleSelectedDeletion } = useSelectionDeletion({
+    keyField: "ID",
+    mutation: DeleteSk,
+    queryKey: ["sks"],
+  });
+
+  // LEFT SUB HEADER
+  const renderSubHeader = (
+    <div className="flex gap-2">
+      <AddForm
+        title={`Form tambah data Sk`}
+        form={{
+          mutation: PostSk,
+          queryKey: ["sks"],
+          otherValue: { create_by: userDetails.username },
+        }}
+        event={{
+          onOpen: () => {
+            setFields(SkFields);
+            setInitialData({});
+          },
+          onClose: () => {
+            setFields([]);
+          },
+        }}
+      />
+    </div>
+  );
+
+  // FILTER NOSURAT
+  const { filteredData, renderFilter } = useFilter({
+    data: Sk,
+    filteredItem: "no_surat",
+  });
+
+  return (
+    <App services="Sk">
+      <div className="p-4">
+        {isLoading ? (
+          <TableLoading />
+        ) : (
+          <Table
+            title="Sk"
+            columns={columns}
+            data={filteredData || []} 
+            CustomHeader={{
+              left: renderSubHeader,
+              right: renderFilter,
+            }}
+            SelectedRows={{
+              title: "Hapus",
+              variant: "destructive",
+              action: handleSelectedDeletion,
+            }}
+          />
+        )}
+      </div>
+    </App>
+  );
+}
