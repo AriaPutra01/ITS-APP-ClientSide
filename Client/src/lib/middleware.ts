@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useToken } from "../features/MainData/hooks/useToken";
+import { useToken } from "../hooks/useToken";
 
 export function MiddlewareProvider({
   children,

@@ -11,4 +11,14 @@ export interface FormConfig {
   initialData?: any;
   onSubmit?: (values: any) => void;
 }
+
+// CALENDAR
+export interface Events {
+  title: string;
+  start: string;
+  end: string;
+  allDay: boolean;
+  color: string;
+  resourceId?: any;
+}
 //

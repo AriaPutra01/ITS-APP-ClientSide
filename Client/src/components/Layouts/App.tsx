@@ -9,9 +9,9 @@ import { VscGitPullRequestGoToChanges } from "react-icons/vsc";
 import Sidebar, {
   SidebarItem,
   SidebarCollapse,
-} from "@/components/Elements/Sidebar";
-import Header from "@/components/Elements/Header";
-import { useToken } from "@/features/MainData/hooks/useToken";
+} from "@/components/Fragments/features/Sidebar";
+import Header from "@/components/Fragments/Notification/Header";
+import { useToken } from "@/hooks/useToken";
 import { MiddlewareProvider } from "@/lib/middleware";
 
 const App = ({

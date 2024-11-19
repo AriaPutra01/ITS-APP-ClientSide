@@ -17,7 +17,7 @@ import {
   useFileStore,
   useFormStore,
 } from "@/features/MainData/store/FormStore";
-import {  TimerToast } from "@/components/Elements/Toast";
+import { TimerToast } from "@/components/Elements/Toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface UploadFormProps {
@@ -96,7 +96,7 @@ const UploadForm: React.FC<UploadFormProps> = ({
   const { file, setFile, setFileAsync } = useFileStore();
 
   // DOWNLOAD FILE
-  const { data: blob, refetch: download } = useFetchData({
+  const { refetch: download } = useFetchData({
     queryKey: ["downloadFile", initialData.ID],
     axios: {
       url: `${downloadUrl}/${initialData?.ID}/${file}`,
@@ -111,19 +111,22 @@ const UploadForm: React.FC<UploadFormProps> = ({
   const handleDownload = useCallback(
     async (selectedFile: any) => {
       try {
+        // SIMPAN FILE
         await setFileAsync(selectedFile);
-        await download();
-        if (blob) {
-          const url = window.URL.createObjectURL(blob as Blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = selectedFile;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        } else {
-          throw new Error("Download failed or no data available");
-        }
+        // API DOWNLOAD
+        await download()
+          .then(({ data: blob }) => {
+            const url = window.URL.createObjectURL(blob as Blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = selectedFile;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          })
+          .catch(() => {
+            throw new Error("Download failed or no data available");
+          });
       } catch (error) {
         TimerToast("error", "Download failed", String(error));
       } finally {
@@ -133,7 +136,7 @@ const UploadForm: React.FC<UploadFormProps> = ({
         setFile({});
       }
     },
-    [blob, download, setFile]
+    [download, setFile]
   );
 
   // DELETE FILE

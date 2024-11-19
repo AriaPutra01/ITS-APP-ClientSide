@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import App from "@/components/Layouts/App";
 import Table from "@/features/MainData/components/Sections/Table/DynamicTable";
-import FilterTableCell from "@/Utils/FilterTableCell";
+import FilterTableCell from "@/lib/FilterTableCell";
 import { TableLoading } from "@/features/MainData/components/Elements/Loading/TableLoading";
 import { useFilter } from "@/features/MainData/hooks/useFilter";
 import {
@@ -11,14 +11,14 @@ import {
   usePostData,
 } from "@/features/MainData/hooks/useAPI";
 import { useFormStore } from "@/features/MainData/store/FormStore";
-import { UploadFields } from "@/config/config/Upload";
+import { UploadFields } from "@/config/FormConfig/upload";
 import { useSelectionDeletion } from "@/features/MainData/hooks/useSelectionDeletion";
 import ShowDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/ShowDialog";
 import AddForm from "@/features/MainData/components/Sections/Table/Actions/Columns/AddForm";
 import DeleteDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/DeleteDialog";
 import EditForm from "@/features/MainData/components/Sections/Table/Actions/Columns/EditForm";
 import UploadForm from "@/features/MainData/components/Sections/Table/Actions/Columns/UploadForm";
-import { useToken } from "@/features/MainData/hooks/useToken";
+import { useToken } from "@/hooks/useToken";
 
 // Arsip
 import { ArsipFields } from "@/features/MainData/config/formFields/DataInformasi/Arsip";
@@ -131,7 +131,7 @@ export default function Arsip() {
               }}
               url={{
                 getUrl: "/filesArsip",
-                postUrl: "/uploadFilesArsip",
+                postUrl: "/uploadFileArsip",
                 downloadUrl: "/downloadArsip",
                 deleteUrl: "/deleteArsip",
               }}

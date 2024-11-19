@@ -1,89 +1,108 @@
-import React, { Fragment } from "react";
-import { Badge, Table, Label } from "flowbite-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import App from "@/components/Layouts/App";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 export const BaseProjectPage = () => {
   return (
     <App services="Base Project">
-      <div className="flex flex-col gap-2 m-2">
-        <Label
-          value="Project Code Divisi IT Security"
-          className="flex justify-center font-black  "
-        />
-        <Label value="Nomor urut /YYYYY/ZZZZZ/AAAAA/B/YEARS" className="" />
-        <Label value="Z" />
-        <Table hoverable>
-          <Table.Head>
-            <Table.HeadCell>Infrastruktur Type</Table.HeadCell>
-            <Table.HeadCell>Code</Table.HeadCell>
-          </Table.Head>
-          <Table.Body>
-            <Table.Row>
-              <Table.Cell>Software</Table.Cell>
-              <Table.Cell>SOF</Table.Cell>
-            </Table.Row>
-            <Table.Row>
-              <Table.Cell>Hardware</Table.Cell>
-              <Table.Cell>HAR</Table.Cell>
-            </Table.Row>
-            <Table.Row>
-              <Table.Cell>Jasa/Human Resource</Table.Cell>
-              <Table.Cell>SER</Table.Cell>
-            </Table.Row>
-          </Table.Body>
-        </Table>
-        <Label value="A" />
-        <Table hoverable>
-          <Table.Head>
-            <Table.HeadCell>Type Anggaran</Table.HeadCell>
-            <Table.HeadCell>Code</Table.HeadCell>
-          </Table.Head>
-          <Table.Body>
-            <Table.Row>
-              <Table.Cell>RBB</Table.Cell>
-              <Table.Cell>RBB</Table.Cell>
-            </Table.Row>
-            <Table.Row>
-              <Table.Cell>NON-RBB</Table.Cell>
-              <Table.Cell>NRBB</Table.Cell>
-            </Table.Row>
-          </Table.Body>
-        </Table>
-        <Label value="B" />
-        <Table hoverable>
-          <Table.Head>
-            <Table.HeadCell>NEW PRODUCT</Table.HeadCell>
-            <Table.HeadCell>A</Table.HeadCell>
-          </Table.Head>
-          <Table.Body>
-            <Table.Row>
-              <Table.Cell>RENEWAL</Table.Cell>
-              <Table.Cell>B</Table.Cell>
-            </Table.Row>
-          </Table.Body>
-        </Table>
-        <Label value="Y" />
-        <Table hoverable>
-          <Table.Head>
-            <Table.HeadCell>GROUP</Table.HeadCell>
-            <Table.HeadCell>Code</Table.HeadCell>
-          </Table.Head>
-          <Table.Body>
-            <Table.Row>
-              <Table.Cell>Security Operation</Table.Cell>
-              <Table.Cell>ITS-ISO</Table.Cell>
-            </Table.Row>
-            <Table.Row>
-              <Table.Cell>Security Architecture & Governence</Table.Cell>
-              <Table.Cell>ITS-SAG</Table.Cell>
-            </Table.Row>
-          </Table.Body>
-        </Table>
+      <div className="flex flex-col gap-[1rem] p-[2rem]">
+        <Label className="flex justify-center text-xl font-bold">
+          Project Code Divisi IT Security
+        </Label>
+        <Label>Nomor urut /YYYYY/ZZZZZ/AAAAA/B/YEARS</Label>
+        <div className="flex flex-col gap-2">
+          <Label>Z</Label>
+          <Table className="border-2 border-gray-200 ">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Infrastruktur Type</TableHead>
+                <TableHead>Code</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>Software</TableCell>
+                <TableCell>SOF</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Hardware</TableCell>
+                <TableCell>HAR</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Jasa/Human Resource</TableCell>
+                <TableCell>SER</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label>A</Label>
+          <Table className="border-2 border-gray-200 ">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Type Anggaran</TableHead>
+                <TableHead>Code</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>RBB</TableCell>
+                <TableCell>RBB</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>NON-RBB</TableCell>
+                <TableCell>NRBB</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label>B</Label>
+          <Table className="border-2 border-gray-200 ">
+            <TableHeader>
+              <TableHead>NEW PRODUCT</TableHead>
+              <TableHead>A</TableHead>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>RENEWAL</TableCell>
+                <TableCell>B</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label>Y</Label>
+          <Table className="border-2 border-gray-200 ">
+            <TableHeader>
+              <TableHead>GROUP</TableHead>
+              <TableHead>Code</TableHead>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>Security Operation</TableCell>
+                <TableCell>ITS-ISO</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Security Architecture & Governence</TableCell>
+                <TableCell>ITS-SAG</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
         <Badge className="w-fit p-2">
-          <Label value="EXAMPLE :" />
+          <Label>EXAMPLE :</Label>
         </Badge>
         <Badge className="w-fit p-2">
-          <Label value="0001/ITS-SAG/SOF/RBB/A/2024" />
+          <Label>0001/ITS-SAG/SOF/RBB/A/2024</Label>
         </Badge>
       </div>
     </App>

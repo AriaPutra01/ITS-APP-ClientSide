@@ -1,6 +1,6 @@
 import { RealtimeClock, RealtimeDate } from "@/Utils/RealtimeClock";
-import { Label } from "../ui/label";
-import Notification from "../Fragments/Services/Notification";
+import { Label } from "../../ui/label";
+import Notification from "./Notification";
 
 export default function Header({ title }: { title: string | undefined }) {
   return (

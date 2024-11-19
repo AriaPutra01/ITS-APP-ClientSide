@@ -1,5 +1,12 @@
 import { create } from "zustand";
 
+type Modal =
+  | "addModal"
+  | "editModal"
+  | "showModal"
+  | "deleteModal"
+  | "uploadModal";
+
 interface ModalStore {
   modals: {
     addModal: boolean;
@@ -8,8 +15,8 @@ interface ModalStore {
     deleteModal: boolean;
     uploadModal: boolean;
   };
-  openModal: (modalName: string) => void;
-  closeModal: (modalName: string) => void;
+  openModal: (modalName: Modal) => void;
+  closeModal: (modalName: Modal) => void;
   resetModals: () => void;
 }
 

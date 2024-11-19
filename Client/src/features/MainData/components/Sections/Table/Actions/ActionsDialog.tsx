@@ -1,5 +1,5 @@
 import { Field } from "@/config/types";
-import { FormatDate } from "@/Utils/FormatDate";
+import { FormatDate } from "@/lib/FormatDate";
 import { CiWarning } from "react-icons/ci";
 import { Button } from "@/components/ui/button";
 
@@ -18,7 +18,7 @@ export function DetailDialog({ fields, initialData }: DetailProps) {
           </h1>
           <p className="justify-self-start mb-1 overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
             {field.type === "date"
-              ? FormatDate(initialData[field.name as any] )
+              ? FormatDate(initialData[field.name as any])
               : initialData[field.name as any]}
           </p>
         </div>

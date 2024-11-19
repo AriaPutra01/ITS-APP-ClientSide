@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import "../../welcome.css";
-import { useToken } from "@/features/MainData/hooks/useToken";
+import { useToken } from "@/hooks/useToken";
 
 export default function Welcome() {
   const navigate = useNavigate();

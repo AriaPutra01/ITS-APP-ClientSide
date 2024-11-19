@@ -1,143 +1,214 @@
-import React, { useState } from "react";
+import { useMemo } from "react";
 import App from "@/components/Layouts/App";
-import { ReusableTable } from "../../../../components/Fragments/Services/ReusableTable";
-import { jwtDecode } from "jwt-decode";
+import Table from "@/features/MainData/components/Sections/Table/DynamicTable";
+import FilterTableCell from "@/lib/FilterTableCell";
+import { TableLoading } from "@/features/MainData/components/Elements/Loading/TableLoading";
+import { useFilter } from "@/features/MainData/hooks/useFilter";
 import {
-  addMeetingList,
-  deleteMeetingList,
-  getMeetingList,
-  updateMeetingList,
-  getMeetingListShow,
-} from "../../../../../API/KegiatanProses/MeetingSchedule.service";
-import { Modal } from "flowbite-react";
-import { useToken } from "../../hooks/useToken";
+  useFetchData,
+  useDeleteData,
+  usePutData,
+  usePostData,
+} from "@/features/MainData/hooks/useAPI";
+import { useFormStore } from "@/features/MainData/store/FormStore";
+import { UploadFields } from "@/config/FormConfig/upload";
+import { useSelectionDeletion } from "@/features/MainData/hooks/useSelectionDeletion";
+import ShowDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/ShowDialog";
+import AddForm from "@/features/MainData/components/Sections/Table/Actions/Columns/AddForm";
+import DeleteDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/DeleteDialog";
+import EditForm from "@/features/MainData/components/Sections/Table/Actions/Columns/EditForm";
+import UploadForm from "@/features/MainData/components/Sections/Table/Actions/Columns/UploadForm";
+import { useToken } from "@/hooks/useToken";
+import statusCell from "@/features/MainData/lib/statusCell";
+// MEETINGSCHEDULE
+import { MeetingScheduleFields } from "@/features/MainData/config/formFields/KegiatanProses/MeetingList";
 
-// Komponen untuk format hari dan tanggal
-const FormatHariTanggal = (tanggal) => {
-  const options = {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-  return new Date(tanggal).toLocaleDateString("id-ID", options);
-};
+export default function MeetingSchedule() {
+  // TOKEN
+  const { userDetails } = useToken();
 
-export function MeetingListPage() {
-  const [formConfig, setFormConfig] = useState({
-    fields: [
-      // Field baru untuk gabung hari dan tanggal
-      {
-        name: "tanggal",
-        label: "Hari dan Tanggal",
-        type: "date",
-        required: true,
-        render: (value) => FormatHariTanggal(value), // Tambahkan fungsi render khusus
-      },
-      { name: "perihal", label: "Perihal", type: "text", required: true },
-      {
-        name: "waktu",
-        label: "Waktu",
-        type: "time",
-        required: false,
-      },
-      {
-        name: "selesai",
-        label: "Selesai",
-        type: "time",
-        required: false,
-      },
-      { name: "tempat", label: "Tempat", type: "text", required: false },
-      {
-        name: "status",
-        label: "Status",
-        type: "select",
-        options: ["Done", "Reschedule", "On Progress", "Cancel"],
-        required: true,
-      },
-      { name: "pic", label: "Pic", type: "text", required: true },
-    ],
-    services: "Meeting Schedule",
+  // FORM STORE
+  const { initialData, setInitialData, setFields } = useFormStore();
+
+  // FETCH & MUTATION HOOKs
+  const { data: Schedule, isLoading } = useFetchData({
+    queryKey: ["shcedules"],
+    axios: {
+      url: "/meetingSchedule",
+    },
+  });
+  const PostShcedule = usePostData({
+    axios: {
+      url: "/meetingSchedule",
+    },
+  });
+  const DeleteShcedule = useDeleteData({
+    axios: {
+      url: "/meetingSchedule",
+    },
+  });
+  const PutShcedule = usePutData({
+    axios: {
+      url: "/meetingSchedule",
+      id: initialData.ID,
+    },
   });
 
-  const { token } = useToken(); // Ambil token dari context
-  let userRole = "";
-  if (token) {
-    const decoded = jwtDecode(token);
-    userRole = decoded.role;
-  }
+  // COLUMN
+  const columns = useMemo(() => {
+    const baseColumns = MeetingScheduleFields.filter(
+      (field) => field.name !== "status"
+    ).map((field) => ({
+      name: field.label,
+      selector: (row: any) => FilterTableCell(field, row[field.name]),
+      sortable: true,
+    }));
 
-  const [isShowModalOpen, setIsShowModalOpen] = useState(false);
-  const [selectedMeetingList, setSelectedMeetingList] = useState(null);
+    const actionColumns = [
+      {
+        name: "Status",
+        selector: (row: any) => row.status,
+        conditionalCellStyles: statusCell(),
+      },
+      {
+        name: "Action By",
+        selector: (row: any) => row.create_by,
+        sortable: true,
+      },
+      {
+        name: "Action",
+        cell: (data: any) => (
+          <div className="flex gap-1">
+            <ShowDialog
+              title={`Form detail data ${initialData.ID}`}
+              event={{
+                onOpen: () => {
+                  setFields([
+                    ...MeetingScheduleFields,
+                    { name: "create_by", label: "Action By" },
+                  ]);
+                  setInitialData(data);
+                },
+                onClose: () => {
+                  setFields([]);
+                  setInitialData({});
+                },
+              }}
+            />
+            <DeleteDialog
+              title={`Hapus data ${initialData.ID}`}
+              event={{
+                onOpen: () => setInitialData(data),
+                onClose: () => setInitialData({}),
+              }}
+              form={{
+                id: initialData.ID,
+                mutation: DeleteShcedule,
+                queryKey: ["shcedules"],
+              }}
+            />
+            <EditForm
+              title={`Form edit data ${initialData?.ID}`}
+              event={{
+                onOpen: () => {
+                  setFields(MeetingScheduleFields);
+                  setInitialData(data);
+                },
+                onClose: () => {
+                  setFields([]);
+                  setInitialData({});
+                },
+              }}
+              form={{
+                mutation: PutShcedule,
+                queryKey: ["shcedules"],
+              }}
+            />
+            <UploadForm
+              title={`Form upload data ${initialData?.ID}`}
+              event={{
+                onOpen: () => {
+                  setFields(UploadFields);
+                  setInitialData(data);
+                },
+                onClose: () => {
+                  setFields([]);
+                  setInitialData({});
+                },
+              }}
+              url={{
+                getUrl: "/filesMeetingList",
+                postUrl: "/uploadFileMeetingList",
+                downloadUrl: "/downloadMeetingList",
+                deleteUrl: "/deleteMeetingList",
+              }}
+            />
+          </div>
+        ),
+      },
+    ];
 
-  const handleShow = async (id) => {
-    try {
-      const meetingList = await getMeetingListShow(id);
-      setSelectedMeetingList(meetingList);
-      setIsShowModalOpen(true);
-    } catch (error) {
-      console.error("Error fetching memo:", error);
-    }
-  };
+    return [...baseColumns, ...actionColumns];
+  }, [MeetingScheduleFields, initialData]);
+
+  // DELETE SELECTION
+  const { handleSelectedDeletion } = useSelectionDeletion({
+    keyField: "ID",
+    mutation: DeleteShcedule,
+    queryKey: ["shcedules"],
+  });
+
+  // LEFT SUB HEADER
+  const renderSubHeader = (
+    <div className="flex gap-2">
+      <AddForm
+        title={`Form tambah data Meeting Shcedule`}
+        form={{
+          mutation: PostShcedule,
+          queryKey: ["shcedules"],
+          otherValue: { create_by: userDetails.username },
+        }}
+        event={{
+          onOpen: () => {
+            setFields(MeetingScheduleFields);
+            setInitialData({});
+          },
+          onClose: () => {
+            setFields([]);
+          },
+        }}
+      />
+    </div>
+  );
+
+  // FILTER NOMEMO
+  const { filteredData, renderFilter } = useFilter({
+    data: Schedule,
+    filteredItem: "hari",
+  });
 
   return (
-    <App services={formConfig.services}>
-      <div className="overflow-auto">
-        {/* Table */}
-        <ReusableTable
-          formConfig={formConfig}
-          setFormConfig={setFormConfig}
-          get={getMeetingList}
-          set={addMeetingList}
-          update={updateMeetingList}
-          remove={deleteMeetingList}
-          excel={{
-            exportThis: "exportMeetingList",
-            import: "uploadMeetingList",
-          }}
-          InfoColumn={true}
-          StatusColumn={true}
-          UploadArsip={{
-            get: "filesMeetingList",
-            upload: "uploadFileMeetingList",
-            download: "downloadMeetingList",
-            delete: "deleteMeetingList",
-          }}
-          OnShow={handleShow}
-        />
-        {/* End Table */}
+    <App services="Meeting Shcedule">
+      <div className="p-4">
+        {isLoading ? (
+          <TableLoading />
+        ) : (
+          <Table
+            title="Meeting Shcedule"
+            columns={columns}
+            data={filteredData || []}
+            CustomHeader={{
+              left: renderSubHeader,
+              right: renderFilter,
+            }}
+            SelectedRows={{
+              title: "Hapus",
+              variant: "destructive",
+              action: handleSelectedDeletion,
+            }}
+          />
+        )}
       </div>
-
-      <Modal show={isShowModalOpen} onClose={() => setIsShowModalOpen(false)}>
-        <Modal.Header>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Meeting Detail
-          </h3>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedMeetingList && (
-            <div className="grid grid-cols-2 gap-4">
-              <p className="font-semibold">Hari dan Tanggal :</p>
-              <p>
-                {/* Format hari dan tanggal di sini */}
-                {FormatHariTanggal(selectedMeetingList.tanggal)}
-              </p>
-              <p className="font-semibold">Perihal :</p>
-              <p>{selectedMeetingList.perihal}</p>
-              <p className="font-semibold">Waktu :</p>
-              <p>{selectedMeetingList.waktu}</p>
-              <p className="font-semibold">Selesai :</p>
-              <p>{selectedMeetingList.selesai}</p>
-              <p className="font-semibold">Tempat :</p>
-              <p>{selectedMeetingList.tempat}</p>
-              <p className="font-semibold">Status :</p>
-              <p>{selectedMeetingList.status}</p>
-              <p className="font-semibold">Pic :</p>
-              <p>{selectedMeetingList.pic}</p>
-            </div>
-          )}
-        </Modal.Body>
-      </Modal>
     </App>
   );
 }

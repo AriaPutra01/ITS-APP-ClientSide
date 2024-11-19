@@ -1,5 +1,6 @@
 import React from "react";
 
+//! HAPUS SETELAH REFACTOR CALENDAR DAN TIMELINE
 export const ColorPick = ({ name, onChange, value, colors }) => {
   return (
     <div className="flex justify-around gap-2">

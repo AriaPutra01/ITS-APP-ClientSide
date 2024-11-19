@@ -1,4 +1,3 @@
-import React from "react";
 import App from "@/components/Layouts/App";
 import Timeline from "../../components/Sections/Calendar/TimelineCalendar";
 import {

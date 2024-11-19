@@ -1,18 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import App from "@/components/Layouts/App";
 import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
-import { useToken } from "../../hooks/useToken";
+import { useToken } from "../../../../hooks/useToken";
 
-export const RequestPage = () => {
-  const [formConfig, setFormConfig] = useState({
-    fields: [
-      // ... existing fields ...
-    ],
-    services: "Request",
-  });
-
+export default function Request() {
   const [conflictRequests, setConflictRequests] = useState([]);
 
   const { token } = useToken();
@@ -104,8 +97,8 @@ export const RequestPage = () => {
   };
 
   return (
-    <App services={formConfig.services}>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
+    <App services="Request">
+      <div className="p-[1rem]" style={{ display: "flex", flexWrap: "wrap" }}>
         {Array.isArray(conflictRequests) && conflictRequests.length > 0 ? (
           conflictRequests.map((conflict, index) => {
             return (
@@ -154,4 +147,4 @@ export const RequestPage = () => {
       </div>
     </App>
   );
-};
+}

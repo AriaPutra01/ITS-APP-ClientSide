@@ -1,60 +1,38 @@
-import axios from "axios";
-import Swal from "sweetalert2";
-import React, { useState } from "react";
-import { Button, Dropdown, FileInput } from "flowbite-react";
+import { useCallback, useEffect, useState } from "react";
 import useAxios from "@/config/axios";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { TimerToast } from "@/components/Elements/Toast";
+import { DynamicForm } from "@/features/MainData/components/Sections/Form/DynamicForm";
+import { useFormStore } from "@/features/MainData/store/FormStore";
+import { ExcelFields } from "@/config/FormConfig/excel";
+import { usePostData } from "@/features/MainData/hooks/useAPI";
+import clsx from "clsx";
 
 type ExcelProps = {
-  linkExportThis: string;
-  linkUpdateThis: string;
-  importExcel: string;
+  link?: {
+    exportThis?: string;
+    import?: string;
+    exportAll?: boolean;
+  };
 };
 
-export function Excel({
-  linkExportThis,
-  linkUpdateThis,
-  importExcel,
-}: ExcelProps) {
+export function Excel({ link }: ExcelProps) {
   const axiosInstance = useAxios();
-
-  const [file, setFile] = useState<File | null>(null);
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setFile(event.target.files[0]);
-    }
-  };
-
-  const UpdateThis = async () => {
-    const result = await Swal.fire({
-      icon: "info",
-      title: "Update Sheet Ini",
-      text: "Anda akan mengupdate sheet ini?",
-      showCancelButton: true,
-      confirmButtonText: "Ya, saya yakin",
-      cancelButtonText: "Batal",
-    });
-    if (result.isConfirmed) {
-      try {
-        await axiosInstance.get(`/${linkUpdateThis}`);
-        Swal.fire({
-          icon: "success",
-          title: "Berhasil!",
-          text: "Data berhasil diupdate ke Excel",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      } catch (error) {
-        Swal.fire("Gagal!", "Error saat update data:", "error");
-      }
-    }
-  };
 
   const exportAll = async () => {
     try {
       const response = await axiosInstance.get("/exportAll", {
         responseType: "blob",
       });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(response.data);
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", "all_sheets.xlsx");
@@ -62,100 +40,89 @@ export function Excel({
       link.click();
       link.remove();
     } catch (error) {
-      Swal.fire("Gagal!", "Error saat mengekspor data:", "error");
+      TimerToast("error", "Gagal!", "Error saat mengekspor data:");
     }
   };
 
-  const handleImport = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!file) {
-      alert("Mohon Untuk Menambahkan File.");
-      return;
-    }
-    const fileReader = new FileReader();
-    fileReader.readAsBinaryString(file);
-    fileReader.onload = async () => {
-      try {
-        let fileExtension = "";
-        const fileName: any = file.name;
-        if (file.name) {
-          fileExtension = fileName.split(".").pop().toLowerCase();
-        } else {
-          fileExtension = "";
-        }
-        if (fileExtension !== "xlsx") {
-          throw new Error("File format harus berupa .xlsx");
-        }
-        const formData = new FormData();
-        formData.append("file", file);
-        await axiosInstance.post(`/${importExcel}`, formData, {
-          // Pastikan importExcel digunakan di sini
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        Swal.fire({
-          icon: "success",
-          title: "Berhasil!",
-          text: "Data berhasil diimport",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-      } catch (error) {
-        console.error("Error saat mengimport data:", error); // Tambahkan log error ini
-        Swal.fire({
-          icon: "error",
-          title: "Gagal!",
-          text: "Mohon untuk memasukkan file.xlsx",
-          showConfirmButton: false,
-          timer: 1500,
-        });
+  const Import = usePostData({
+    axios: {
+      url: `/${link?.import}`,
+    },
+  });
+
+  const handleSubmit = useCallback(
+    async (values: any) => {
+      if (fields !== ExcelFields) {
+        setFields(ExcelFields);
+        return;
       }
-    };
-  };
+      const formData = new FormData();
+      formData.append("file", values.file);
+      await Import.mutateAsync(formData as any, {
+        onSuccess: ({ data }: any) => {
+          TimerToast("success", "File berhasil ditambahkan!", data.message);
+        },
+        onError: ({ response }: any) => {
+          TimerToast("error", "Data gagal ditambahkan!", response.data.message);
+        },
+      })
+        .then(() => Import.reset())
+        .finally(() => setFields([]));
+    },
+    [Import]
+  );
+
+  const { fields, setFields } = useFormStore();
+
+  const [isOpen, setOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setFields([]);
+    }
+  }, [isOpen]);
 
   return (
-    <div className="flex gap-1.5 items-center justify-center">
-      <Dropdown color="success" label="Excel" dismissOnClick={false}>
-        <Dropdown.Item className="flex gap-2 justify-between">
-          {linkExportThis && (
-            <Dropdown color="info" label="EXPORT" dismissOnClick={false}>
-              <Dropdown.Item>
-                <a href={`http://localhost:8080/${linkExportThis}`}>
-                  This Sheet
-                </a>
-              </Dropdown.Item>
-              <Dropdown.Item>
-                <a onClick={exportAll}>All Sheets</a>{" "}
-                {/* Panggil fungsi exportAll */}
-              </Dropdown.Item>
-            </Dropdown>
+    <div className="flex gap-1.5 items-center size-full justify-center">
+      <DropdownMenu open={isOpen} onOpenChange={(open) => setOpen(open)}>
+        <DropdownMenuTrigger className="size-full" asChild>
+          <Button className="bg-green-600 hover:bg-green-700">Excel</Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="flex flex-col gap-4 p-4">
+          {/* EXPORT */}
+          {link?.exportThis && (
+            <div
+              className={clsx(
+                { "grid-cols-2": link?.exportAll },
+                "grid grid-cols-1 gap-2 p-2 shadow"
+              )}>
+              <Label className="col-span-2">Export</Label>
+              <DropdownMenuItem className="col-span-1 bg-green-600 hover:bg-green-700 text-white">
+                <Link
+                  className="text-center w-full"
+                  to={`http://localhost:8080/${link?.exportThis}`}>
+                  Sheet ini saja
+                </Link>
+              </DropdownMenuItem>
+              {link?.exportAll && (
+                <DropdownMenuItem className="col-span-1 bg-green-600 hover:bg-green-700 text-white">
+                  <span className="text-center w-full" onClick={exportAll}>
+                    Semua sheet
+                  </span>
+                </DropdownMenuItem>
+              )}
+            </div>
           )}
-          {linkUpdateThis && (
-            <Dropdown color="warning" label="UPDATE" dismissOnClick={false}>
-              <Dropdown.Item>
-                <a onClick={UpdateThis}>This Sheet</a>
-              </Dropdown.Item>
-            </Dropdown>
+          {/* END EXPORT */}
+          {/* IMPORT */}
+          {link?.import && (
+            <div className="p-2 shadow">
+              <DynamicForm onSubmit={handleSubmit} type="excel" />
+            </div>
           )}
-        </Dropdown.Item>
-        {importExcel && (
-          <Dropdown.Item className="flex flex-col gap-2">
-            <FileInput onChange={handleFileChange} />
-            <Button
-              onClick={
-                handleImport as unknown as React.MouseEventHandler<HTMLButtonElement>
-              }
-              color="success"
-              className="w-full">
-              Import
-            </Button>
-          </Dropdown.Item>
-        )}
-      </Dropdown>
+          {/* END IMPORT */}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
