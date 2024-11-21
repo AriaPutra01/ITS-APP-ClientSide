@@ -16,7 +16,7 @@ export const RencanaKerjaChart = () => {
     () => [
       {
         label: "Project",
-        color: "green",
+        color: "gold",
         count: GetProject,
       },
     ],
@@ -31,7 +31,7 @@ export const RencanaKerjaChart = () => {
     <Card
       className="grid grid-cols-1 gap-2"
       title="Rencana Kerja"
-      color="green">
+      color="gold">
       {RencanaKerja.map((item, index) => (
         <Card.item key={index} color={item.color} label={item.label}>
           {item.count as any}

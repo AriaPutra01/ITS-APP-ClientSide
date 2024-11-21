@@ -9,7 +9,8 @@ interface Card {
 
 const Card = ({ title, children, className, color }: Card) => (
   <div
-    className={`border-b-4 border-${color}-600 size-full bg-gray-50 rounded-lg shadow p-4`}>
+    style={{ borderColor: color }}
+    className={`border-b-4  size-full bg-gray-50 rounded-lg shadow p-4`}>
     <div className="mb-3">
       <div className="flex items-center">
         <div className="flex justify-center items-center">
@@ -35,10 +36,20 @@ const Item = ({ children, label, color }: Item) => (
     <div className={`gap-3 mb-2 text-center h-full`}>
       <dl className="bg-${color}-50 p-2 rounded-lg flex flex-col items-center justify-center h-full">
         <dt
-          className={`size-8 rounded-full bg-${color}-100 text-${color}-600 text-sm font-medium flex items-center justify-center mb-1`}>
+          style={{
+            backgroundColor: color,
+            color: "white",
+          }}
+          className={`size-8 rounded-full text-sm font-medium flex items-center justify-center mb-1`}>
           {children}
         </dt>
-        <dd className={`text-${color}-600 text-sm font-medium`}>{label}</dd>
+        <dd
+          style={{
+            color,
+          }}
+          className={`text-sm font-medium`}>
+          {label}
+        </dd>
       </dl>
     </div>
   </div>

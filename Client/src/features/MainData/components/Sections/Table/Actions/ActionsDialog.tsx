@@ -1,7 +1,7 @@
 import { Field } from "@/config/types";
-import { FormatDate } from "@/Utils/FormatDate";
-import { CiWarning } from "react-icons/ci";
 import { Button } from "@/components/ui/button";
+import { LucideMessageCircleWarning } from "lucide-react";
+import dayjs from "@/lib/dayjs";
 
 type DetailProps = {
   fields: Partial<Field>[];
@@ -18,7 +18,9 @@ export function DetailDialog({ fields, initialData }: DetailProps) {
           </h1>
           <p className="justify-self-start mb-1 overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
             {field.type === "date"
-              ? FormatDate(initialData[field.name as any] )
+              ? dayjs(initialData[field.name as any]).format(
+                  "dddd, DD MMM YYYY"
+                )
               : initialData[field.name as any]}
           </p>
         </div>
@@ -34,7 +36,7 @@ type DeleteProps = {
 export function DeleteDialog({ onSubmit }: DeleteProps) {
   return (
     <div className="flex flex-col justify-center text-center gap-4 p-[1rem] mt-[1rem] rounded-lg">
-      <CiWarning className="w-full size-[5rem] text-red-600" />
+      <LucideMessageCircleWarning className="w-full size-[5rem] text-red-600" />
       <h1 className="text-xl font-bold text-black">
         Apakah anda yakin untuk menghapus data ini?
       </h1>

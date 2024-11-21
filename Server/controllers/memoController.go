@@ -51,7 +51,7 @@ func UploadHandlerMemo(c *gin.Context) {
 		os.MkdirAll(dir, 0755)
 	}
 
-	filePath := filepath.Join(dir, file.Filename)
+	filePath := filepath.ToSlash(filepath.Join(baseDir, id, file.Filename))
 	if err := c.SaveUploadedFile(file, filePath); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan file"})
 		return
@@ -75,10 +75,14 @@ func UploadHandlerMemo(c *gin.Context) {
 }
 
 func GetFilesByIDMemo(c *gin.Context) {
-	id := c.Param("id")
+	id := c.Param("id") // Ambil memo ID dari URL
+
+	// Buat pattern file_path berdasarkan struktur folder penyimpanan
+	filePathPattern := fmt.Sprintf("C:/UploadedFile/memo/%s/%%", id)
 
 	var files []models.File
-	result := initializers.DB.Where("user_id = ?", id).Find(&files)
+	// Filter file berdasarkan pola file_path
+	result := initializers.DB.Where("file_path LIKE ?", filePathPattern).Find(&files)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data file"})
 		return
@@ -89,7 +93,7 @@ func GetFilesByIDMemo(c *gin.Context) {
 		fileNames = append(fileNames, file.FileName)
 	}
 
-	c.JSON(http.StatusOK,  fileNames)
+	c.JSON(http.StatusOK, fileNames)
 }
 
 func DeleteFileHandlerMemo(c *gin.Context) {
@@ -102,12 +106,20 @@ func DeleteFileHandlerMemo(c *gin.Context) {
 	}
 
 	id := c.Param("id")
-	log.Printf("Received ID: %s and Filename: %s", id, filename) // Tambahkan log ini
+	log.Printf("Received ID: %s and Filename: %s", id, filename)
 
 	baseDir := "C:/UploadedFile/memo"
-	fullPath := filepath.Join(baseDir, id, filename)
+	fullPath := filepath.ToSlash(filepath.Join(baseDir, id, filename))
 
 	log.Printf("Attempting to delete file at path: %s", fullPath)
+
+	// Cek dulu apakah metadata file ada di database
+	var file models.File
+	if err := initializers.DB.Where("file_path = ?", fullPath).First(&file).Error; err != nil {
+		log.Printf("File metadata not found: %v", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "File metadata not found"})
+		return
+	}
 
 	// Hapus file dari sistem file
 	err = os.Remove(fullPath)
@@ -118,7 +130,7 @@ func DeleteFileHandlerMemo(c *gin.Context) {
 	}
 
 	// Hapus metadata file dari database
-	result := initializers.DB.Where("file_path = ?", fullPath).Delete(&models.File{})
+	result := initializers.DB.Delete(&file)
 	if result.Error != nil {
 		log.Printf("Error deleting file metadata: %v", result.Error)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete file metadata"})
@@ -132,7 +144,7 @@ func DownloadFileHandlerMemo(c *gin.Context) {
 	id := c.Param("id")
 	filename := c.Param("filename")
 	baseDir := "C:/UploadedFile/memo"
-	fullPath := filepath.Join(baseDir, id, filename)
+	fullPath := filepath.ToSlash(filepath.Join(baseDir, id, filename))
 
 	log.Printf("Full path for download: %s", fullPath)
 

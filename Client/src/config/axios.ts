@@ -1,4 +1,4 @@
-import { useToken } from "@/features/MainData/hooks/useToken";
+import { useToken } from "@/hooks/useToken";
 import axios from "axios";
 
 const useAxios = () => {

@@ -1,5 +1,5 @@
 import React from "react";
-import { FilterComponent } from "@/features/MainData/components/Sections/Table/Filter";
+import { FilterComponent } from "@/features/MainData/components/Sections/Table/TextFilter";
 
 interface Props {
   data: any;
@@ -9,13 +9,19 @@ interface Props {
 export const useFilter = ({ data, filteredItem }: Props) => {
   const [filterText, setFilterText] = React.useState("");
 
-  const filteredData = React.useMemo(() => {
-    return data?.filter(
-      (item: any) =>
-        item[filteredItem] &&
-        item[filteredItem].toLowerCase().includes(filterText.toLowerCase())
-    );
-  }, [data, filterText]);
+  let filteredData;
+
+  if (filteredData !== "") {
+    filteredData = React.useMemo(() => {
+      return data?.filter((item: any) => {
+        return item[filteredItem]
+          .toLowerCase()
+          .includes(filterText.toLowerCase());
+      });
+    }, [data, filterText]);
+  } else {
+    filteredData = data;
+  }
 
   const handleClear = () => {
     if (filterText) {

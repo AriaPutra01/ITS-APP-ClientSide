@@ -44,27 +44,27 @@ export const DokumenChart = () => {
     () => [
       {
         label: "Memo",
-        color: "cyan",
+        color: "purple",
         count: GetMemo,
       },
       {
         label: "Berita Acara",
-        color: "cyan",
+        color: "purple",
         count: GetBeritaAcara,
       },
       {
         label: "Surat",
-        color: "cyan",
+        color: "purple",
         count: GetSurat,
       },
       {
         label: "SK",
-        color: "cyan",
+        color: "purple",
         count: GetSK,
       },
       {
         label: "Perjalanan Dinas",
-        color: "cyan",
+        color: "purple",
         count: GetPerdin,
       },
     ],
@@ -79,7 +79,7 @@ export const DokumenChart = () => {
   }
 
   return (
-    <Card className="grid grid-cols-5 gap-2" title="Dokumen" color="cyan">
+    <Card className="grid grid-cols-5 gap-2" title="Dokumen" color="purple">
       {Dokumen.map((item, index) => (
         <Card.item key={index} color={item.color} label={item.label}>
           {item.count as any}

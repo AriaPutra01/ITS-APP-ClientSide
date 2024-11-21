@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import App from "@/components/Layouts/App";
 import Table from "@/features/MainData/components/Sections/Table/DynamicTable";
-import FilterTableCell from "@/Utils/FilterTableCell";
+import FilterTableCell from "@/lib/FilterTableCell";
 import { TableLoading } from "@/features/MainData/components/Elements/Loading/TableLoading";
 import { useFilter } from "@/features/MainData/hooks/useFilter";
 import {

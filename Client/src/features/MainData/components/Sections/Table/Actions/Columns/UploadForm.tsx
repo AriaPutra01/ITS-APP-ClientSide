@@ -17,8 +17,10 @@ import {
   useFileStore,
   useFormStore,
 } from "@/features/MainData/store/FormStore";
-import {  TimerToast } from "@/components/Elements/Toast";
+import { TimerToast } from "@/components/Elements/Toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
+import UploadLoading from "@/features/MainData/components/Elements/Loading/UploadLoading";
 
 interface UploadFormProps {
   title: string;
@@ -50,7 +52,7 @@ const UploadForm: React.FC<UploadFormProps> = ({
   const queryClient = useQueryClient();
 
   // GET FILES
-  const { data: GetFiles = [] } = useFetchData({
+  const { data: GetFiles = [], isLoading } = useFetchData({
     queryKey: ["files", initialData.ID],
     axios: {
       url: `${getUrl}/${initialData?.ID}`,
@@ -96,7 +98,7 @@ const UploadForm: React.FC<UploadFormProps> = ({
   const { file, setFile, setFileAsync } = useFileStore();
 
   // DOWNLOAD FILE
-  const { data: blob, refetch: download } = useFetchData({
+  const { refetch: download } = useFetchData({
     queryKey: ["downloadFile", initialData.ID],
     axios: {
       url: `${downloadUrl}/${initialData?.ID}/${file}`,
@@ -111,19 +113,22 @@ const UploadForm: React.FC<UploadFormProps> = ({
   const handleDownload = useCallback(
     async (selectedFile: any) => {
       try {
+        // SIMPAN FILE
         await setFileAsync(selectedFile);
-        await download();
-        if (blob) {
-          const url = window.URL.createObjectURL(blob as Blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = selectedFile;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        } else {
-          throw new Error("Download failed or no data available");
-        }
+        // API DOWNLOAD
+        await download()
+          .then(({ data: blob }) => {
+            const url = window.URL.createObjectURL(blob as Blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = selectedFile;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          })
+          .catch(() => {
+            throw new Error("Download failed or no data available");
+          });
       } catch (error) {
         TimerToast("error", "Download failed", String(error));
       } finally {
@@ -133,7 +138,7 @@ const UploadForm: React.FC<UploadFormProps> = ({
         setFile({});
       }
     },
-    [blob, download, setFile]
+    [download, setFile]
   );
 
   // DELETE FILE
@@ -169,12 +174,17 @@ const UploadForm: React.FC<UploadFormProps> = ({
       isOpen={uploadModal}
       trigger={{
         onOpen: (
-          <UploadButton
-            onClick={() => {
-              openModal("uploadModal");
-              onOpen();
-            }}
-          />
+          <div className="relative">
+            {(GetFiles as any)?.length > 0 ? (
+              <Skeleton className="absolute -top-1 -left-1 size-4 bg-[blue] rounded-full" />
+            ) : null}
+            <UploadButton
+              onClick={() => {
+                openModal("uploadModal");
+                onOpen();
+              }}
+            />
+          </div>
         ),
         onClose: (
           <CloseButton
@@ -189,7 +199,7 @@ const UploadForm: React.FC<UploadFormProps> = ({
       <Modal.Content>
         <DynamicForm onSubmit={handleSubmit} type="upload" />
         <ul className="flex flex-col gap-[.5rem] mt-[1rem]">
-          {GetFiles &&
+          {!isLoading ? (
             (GetFiles as any)?.map((file: any, index: number) => (
               <li
                 key={index}
@@ -210,7 +220,10 @@ const UploadForm: React.FC<UploadFormProps> = ({
                   />
                 </div>
               </li>
-            ))}
+            ))
+          ) : (
+            <UploadLoading />
+          )}
         </ul>
       </Modal.Content>
     </Modal>

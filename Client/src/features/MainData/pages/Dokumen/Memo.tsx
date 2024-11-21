@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import App from "@/components/Layouts/App";
 import Table from "@/features/MainData/components/Sections/Table/DynamicTable";
-import FilterTableCell from "@/Utils/FilterTableCell";
+import FilterTableCell from "@/lib/FilterTableCell";
 import { TableLoading } from "@/features/MainData/components/Elements/Loading/TableLoading";
 import { useFilter } from "@/features/MainData/hooks/useFilter";
 import {
@@ -11,15 +11,17 @@ import {
   usePostData,
 } from "@/features/MainData/hooks/useAPI";
 import { useFormStore } from "@/features/MainData/store/FormStore";
-import { UploadFields } from "@/config/config/Upload";
+import { UploadFields } from "@/config/FormConfig/upload";
 import { useSelectionDeletion } from "@/features/MainData/hooks/useSelectionDeletion";
 import ShowDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/ShowDialog";
 import AddForm from "@/features/MainData/components/Sections/Table/Actions/Columns/AddForm";
 import DeleteDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/DeleteDialog";
 import EditForm from "@/features/MainData/components/Sections/Table/Actions/Columns/EditForm";
 import UploadForm from "@/features/MainData/components/Sections/Table/Actions/Columns/UploadForm";
-import { useToken } from "@/features/MainData/hooks/useToken";
+import { useToken } from "@/hooks/useToken";
 import { extractMiddle } from "@/features/MainData/hooks/useFormat";
+import { Excel } from "@/Utils/Excel";
+import { useFilterCheckbox } from "@/features/MainData/hooks/useFilterCheckbox";
 // MEMO
 import { MemoFields } from "@/features/MainData/config/formFields/Dokumen/Memo";
 
@@ -29,7 +31,7 @@ export default function Memo() {
 
   // FORM STORE
   const { initialData, setInitialData, setFields } = useFormStore();
-  
+
   // FETCH & MUTATION HOOKs
   const { data: memos, isLoading } = useFetchData({
     queryKey: ["memos"],
@@ -105,7 +107,10 @@ export default function Memo() {
               event={{
                 onOpen: () => {
                   setFields(MemoFields);
-                  setInitialData({...data, no_memo: extractMiddle(data.no_memo)});
+                  setInitialData({
+                    ...data,
+                    no_memo: extractMiddle(data.no_memo),
+                  });
                 },
                 onClose: () => {
                   setFields([]);
@@ -114,7 +119,7 @@ export default function Memo() {
               }}
               form={{
                 mutation: PutMemo,
-                queryKey: ["memos"] ,
+                queryKey: ["memos"],
               }}
             />
             <UploadForm
@@ -171,14 +176,42 @@ export default function Memo() {
           },
         }}
       />
+      <Excel
+        link={{
+          exportThis: "/exportMemo",
+          import: "/uploadMemo",
+          exportAll: true,
+        }}
+        invalidateKey={["memos"]}
+      />
     </div>
   );
 
   // FILTER NOMEMO
-  const { filteredData, renderFilter } = useFilter({
-    data: memos,
-    filteredItem: "no_memo",
-  });
+  const { filteredData: filteredData1, renderFilter: renderFilter1 } =
+    useFilter({
+      data: memos,
+      filteredItem: "pic",
+    });
+
+  //TODO: IMPLEMENTASI FILTER SAGISO
+  const { filteredData: filteredData2, renderFilter: renderFilter2 } =
+    useFilterCheckbox({
+      data: memos,
+      filter: { "ITS-ISO": true, "ITS-SAG": true },
+      filteredItem: "no_memo",
+    });
+
+  // State untuk menyimpan hasil gabungan
+  const [finalFilteredData, setFinalFilteredData] = useState([]);
+
+  // Sinkronisasi hasil filter
+  useEffect(() => {
+    const intersectedData = filteredData1?.filter((item: any) =>
+      filteredData2.includes(item)
+    );
+    setFinalFilteredData(intersectedData);
+  }, [filteredData1, filteredData2]);
 
   return (
     <App services="Memo">
@@ -189,10 +222,15 @@ export default function Memo() {
           <Table
             title="Memo"
             columns={columns}
-            data={filteredData || []}
+            data={finalFilteredData || []}
             CustomHeader={{
               left: renderSubHeader,
-              right: renderFilter,
+              right: (
+                <div className="flex gap-4">
+                  {renderFilter2}
+                  {renderFilter1}
+                </div>
+              ),
             }}
             SelectedRows={{
               title: "Hapus",

@@ -50,6 +50,7 @@ const AddForm: React.FC<AddFormProps> = ({
             },
           }
         )
+        .then(() => closeModal("addModal"))
         .then(() => queryClient.invalidateQueries({ queryKey: queryKey }))
         .then(() => mutation.reset());
     },

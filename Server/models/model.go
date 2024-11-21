@@ -251,7 +251,6 @@ func (i *Perdin) MarshalJSON() ([]byte, error) {
 	}
 }
 
-
 // model for project
 type Project struct {
 	ID              uint       `gorm:"primaryKey"`
@@ -381,7 +380,7 @@ type TimelineDesktop struct {
 	Title      string `json:"title"`
 	Start      string `json:"start"`
 	End        string `json:"end"`
-	AllDay 		 bool   `json:"allDay"`
+	AllDay     bool   `json:"allDay"`
 	BgColor    string `json:"color"`
 	ResourceId int    `json:"resourceId"`
 }
@@ -458,9 +457,9 @@ func (i *SuratKeluar) MarshalJSON() ([]byte, error) {
 }
 
 type Arsip struct {
-	ID        uint       `gorm:"primaryKey"`
-	CreatedAt *time.Time `gorm:"autoCreateTime"`
-	UpdatedAt *time.Time `gorm:"autoUpdateTime"`
+	ID                uint       `gorm:"primaryKey"`
+	CreatedAt         *time.Time `gorm:"autoCreateTime"`
+	UpdatedAt         *time.Time `gorm:"autoUpdateTime"`
 	NoArsip           *string    `json:"no_arsip"`
 	JenisDokumen      *string    `json:"jenis_dokumen"`
 	NoDokumen         *string    `json:"no_dokumen"`
@@ -502,14 +501,14 @@ func (a *Arsip) MarshalJSON() ([]byte, error) {
 }
 
 type File struct {
-	ID          uint      `gorm:"primaryKey"`         // ID unik untuk file
-	CreatedAt   time.Time `gorm:"autoCreateTime"`     // Timestamp saat file diunggah
-	UpdatedAt   time.Time `gorm:"autoUpdateTime"`     // Timestamp untuk setiap update
-	UserID      uint      `gorm:"index"`              // ID pengguna yang mengunggah file
-	FilePath    string    `gorm:"not null"`           // Path lengkap di mana file disimpan
-	FileName    string    `gorm:"not null"`           // Nama file asli
-	ContentType string    `gorm:"not null"`           // Jenis konten file, misal 'application/pdf'
-	Size        int64     `gorm:"not null"`           // Ukuran file dalam byte
+	ID          uint      `gorm:"primaryKey"`     // ID unik untuk file
+	CreatedAt   time.Time `gorm:"autoCreateTime"` // Timestamp saat file diunggah
+	UpdatedAt   time.Time `gorm:"autoUpdateTime"` // Timestamp untuk setiap update
+	UserID      uint      `gorm:"index"`          // ID pengguna yang mengunggah file
+	FilePath    string    `gorm:"not null"`       // Path lengkap di mana file disimpan
+	FileName    string    `gorm:"not null"`       // Nama file asli
+	ContentType string    `gorm:"not null"`       // Jenis konten file, misal 'application/pdf'
+	Size        int64     `gorm:"not null"`       // Ukuran file dalam byte
 }
 
 // TableName overrides the table name used by File to `files`, if you want to specify it explicitly
@@ -528,5 +527,3 @@ type ConflictRequest struct {
 	EndTime    string
 	Date       time.Time
 }
-
-

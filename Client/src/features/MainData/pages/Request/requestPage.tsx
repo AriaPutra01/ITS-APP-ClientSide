@@ -1,157 +1,130 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
 import App from "@/components/Layouts/App";
-import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
-import { useToken } from "../../hooks/useToken";
+import { useFetchData } from "../../hooks/useAPI";
+import { ConfirmToast, TimerToast } from "@/components/Elements/Toast";
+import { useFormStore } from "../../store/FormStore";
+import { useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import ConflictLoading from "../../components/Elements/Loading/ConflictLoading";
+import { useQueryClient } from "@tanstack/react-query";
 
-export const RequestPage = () => {
-  const [formConfig, setFormConfig] = useState({
-    fields: [
-      // ... existing fields ...
-    ],
-    services: "Request",
+export default function Request() {
+  // FETCH REQUEST
+  const { data: GetRequest, isLoading: LoadingRequest } = useFetchData({
+    queryKey: ["conflictRequests"],
+    axios: {
+      url: "/request?status=pending",
+    },
+  });
+  const { initialData, setInitialData } = useFormStore();
+
+  const { refetch: Acc } = useFetchData({
+    queryKey: ["accRequests"],
+    axios: {
+      url: `/AccRequest/${initialData.id}`,
+    },
+    enabled: false,
   });
 
-  const [conflictRequests, setConflictRequests] = useState([]);
+  const { refetch: Cancel } = useFetchData({
+    queryKey: ["cancelRequests"],
+    axios: {
+      url: `/CancelRequest/${initialData.id}`,
+    },
+    enabled: false,
+  });
 
-  const { token } = useToken();
+  const queryClient = useQueryClient();
 
-  let userRole = "";
-  if (token) {
-    const decoded = jwtDecode(token);
-    userRole = decoded.role;
-  }
+  const handleAccept = useCallback(
+    async (id: any) => {
+      setInitialData({ id });
+      ConfirmToast("question", "Accept Request?").then(async (result) => {
+        if (result.isConfirmed) {
+          Acc()
+            .then(({ data }: any) => {
+              TimerToast("success", "Berhasil!", data.message);
+            })
+            .catch(({ response }: any) => {
+              TimerToast("error", "Gagal!", response.data.message);
+            })
+            .finally(() => {
+              setInitialData({});
+              queryClient.invalidateQueries({ queryKey: ["conflictRequests"] });
+            });
+        }
+      });
+    },
+    [initialData, Acc]
+  );
 
-  useEffect(() => {
-    if (token) {
-      fetch("http://localhost:8080/request?status=pending", {
-        // Tambahkan query parameter status=pending
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data && data.request) {
-            setConflictRequests(data.request);
-          } else {
-            console.error("Data format is incorrect or 'booking' is missing");
-          }
-        })
-        .catch((error) => console.error("Error fetching data:", error));
-    }
-  }, [token]);
-
-  const handleAccept = async (id) => {
-    // Tambahkan parameter id
-    const result = await Swal.fire({
-      icon: "success",
-      title: "Acc Request",
-      text: "Anda akan acc request ini?",
-      showCancelButton: true,
-      confirmButtonText: "Ya, saya yakin",
-      cancelButtonText: "Batal",
-    });
-    if (result.isConfirmed) {
-      try {
-        await axios.get(`http://localhost:8080/AccRequest/${id}`); // Gunakan id dalam URL
-        Swal.fire({
-          icon: "success",
-          title: "Berhasil!",
-          text: "Data berhasil diupdate ke Excel",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-        window.location.reload();
-      } catch (error) {
-        Swal.fire("Gagal!", "Error saat update data:", "error");
-      }
-    }
-  };
-
-  const handleCancel = async (id) => {
-    const result = await Swal.fire({
-      icon: "error",
-      title: "Cancel Request",
-      text: "Anda akan mengcancel request ini?",
-      showCancelButton: true,
-      confirmButtonText: "Ya, saya yakin",
-      cancelButtonText: "Batal",
-    });
-    if (result.isConfirmed) {
-      try {
-        await axios.get(`http://localhost:8080/CancelRequest/${id}`);
-        Swal.fire({
-          icon: "success",
-          title: "Berhasil!",
-          text: "Data berhasil di cancel",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-        window.location.reload();
-      } catch (error) {
-        Swal.fire("Gagal!", "Error saat cancel data:" + error, "error");
-      }
-    }
-  };
+  const handleCancel = useCallback(
+    async (id: any) => {
+      setInitialData({ id });
+      ConfirmToast("question", "Cancel Request?").then(async (result) => {
+        if (result.isConfirmed) {
+          Cancel()
+            .then(({ data }: any) => {
+              TimerToast("success", "Berhasil!", data.message);
+            })
+            .catch(({ response }: any) => {
+              TimerToast("error", "Gagal!", response.data.message);
+            })
+            .finally(() => {
+              setInitialData({});
+              queryClient.invalidateQueries({ queryKey: ["conflictRequests"] });
+            });
+        }
+      });
+    },
+    [initialData, Cancel]
+  );
 
   return (
-    <App services={formConfig.services}>
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
-        {Array.isArray(conflictRequests) && conflictRequests.length > 0 ? (
-          conflictRequests.map((conflict, index) => {
-            return (
-              <div
-                key={index}
-                style={{
-                  border: "1px solid #ccc",
-                  padding: "20px",
-                  borderRadius: "8px",
-                  marginBottom: "20px",
-                  width: "calc(50% - 20px)", // Setengah layar dengan margin
-                  marginRight: index % 2 === 0 ? "20px" : "0", // Tambahkan margin kanan untuk card di sebelah kiri
-                }}>
-                <h3>Data Bentrok</h3>
-                <p>
-                  Jadwal rapat <strong>{conflict.title}</strong> bentrok pada
-                  tanggal <strong>{conflict.start}</strong>
-                </p>
-                <button
-                  onClick={() => handleAccept(conflict.id)} // Pass ID to handleAccept
-                  style={{ marginRight: "10px" }}
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-auto px-5 py-2.5 text-center mt-2">
-                  Acc
-                </button>
-                <button
-                  onClick={() => handleCancel(conflict.id)} // Pass ID to handleCancel
-                  className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm w-auto px-5 py-2.5 text-center mt-2">
-                  Cancel
-                </button>
-              </div>
-            );
-          })
-        ) : (
-          <div
-            style={{
-              width: "100%",
-              height: "80vh",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginTop: "20px",
-            }}>
-            Tidak ada jadwal bentrok
-          </div>
-        )}
-      </div>
+    <App services="Request">
+      {LoadingRequest ? (
+        <ConflictLoading />
+      ) : (
+        <div className="p-[2rem] grid grid-cols-3">
+          {Array.isArray(GetRequest) && GetRequest?.length > 0 ? (
+            GetRequest?.map((conflict, index) => {
+              return (
+                <div
+                  key={index}
+                  className="w-full ring ring-gray-200 rounded-md p-4 mb-4">
+                  <span>
+                    <h3 className="font-bold">Data Bentrok !</h3>
+                    <p>
+                      Jadwal rapat <b>{conflict.title}</b>
+                    </p>
+                    <p>
+                      bentrok pada tanggal <b>{conflict.start}</b>
+                    </p>
+                  </span>
+                  <div className="w-full flex gap-2">
+                    <Button
+                      onClick={() => handleAccept(conflict.id)} // Pass ID to handleAccept
+                      className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mt-2">
+                      Acc
+                    </Button>
+                    <Button
+                      onClick={() => handleCancel(conflict.id)} // Pass ID to handleCancel
+                      className="w-full text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mt-2">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="col-span-3 text-2xl font-bold w-full h-[70vh] flex justify-center items-center">
+              Tidak ada jadwal bentrok
+            </div>
+          )}
+        </div>
+      )}
     </App>
   );
-};
+}

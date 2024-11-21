@@ -16,7 +16,7 @@ func RequestIndex(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"request": request})
+	c.JSON(http.StatusOK,  request)
 
 }
 
@@ -50,12 +50,12 @@ func CancelRequest(c *gin.Context) {
 	var request models.BookingRapat
 
 	if err := initializers.DB.First(&request, id); err.Error != nil {
-		c.JSON(404, gin.H{"error": "Request not found"})
+		c.JSON(404, gin.H{"message": "Request not found"})
 		return
 	}
 
 	if err := initializers.DB.Delete(&request).Error; err != nil {
-		c.JSON(400, gin.H{"error": "Failed to delete Request: " + err.Error()})
+		c.JSON(400, gin.H{"message": "Failed to delete Request: " + err.Error()})
 		return
 	}
 

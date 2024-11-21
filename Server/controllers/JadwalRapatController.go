@@ -21,7 +21,7 @@ func GetEventsRapat(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"rapat": events})
+	c.JSON(http.StatusOK, events)
 }
 
 func CreateEventRapat(c *gin.Context) {

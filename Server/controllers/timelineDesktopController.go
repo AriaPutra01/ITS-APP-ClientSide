@@ -18,32 +18,45 @@ import (
 func GetEventsDesktop(c *gin.Context) {
 	var events []models.TimelineDesktop
 	if err := initializers.DB.Find(&events).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"events": events})
+	c.JSON(http.StatusOK, events)
 }
 
 // CreateEventTimeline creates a new timeline event
 func CreateEventDesktop(c *gin.Context) {
 	var event models.TimelineDesktop
 	if err := c.ShouldBindJSON(&event); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	// Validasi keberadaan resource_id
+	var resource models.ResourceDesktop
+	if err := initializers.DB.First(&resource, event.ResourceId).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "mohon untuk memilih resource terlebih dahulu"})
 		return
 	}
 
 	// Parsing waktu untuk notifikasi
 	loc, err := time.LoadLocation("Asia/Jakarta")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error loading location"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error loading location"})
 		return
 	}
 
+	var startTime time.Time
+	if event.AllDay {
+		startTime, err = time.ParseInLocation("2006-01-02T15:04:05", event.Start+"T00:00:00", loc)
+	} else {
+		startTime, err = time.ParseInLocation(time.RFC3339, event.Start, loc)
+	}
+
 	// Ubah format parsing sesuai dengan format yang diterima
-	startTime, err := time.ParseInLocation("2006-01-02 15:04:05", event.Start, loc) // Ubah format di sini
 	if err != nil {
 		log.Printf("Error parsing start time: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Error parsing start time"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Error parsing start time"})
 		return
 	}
 
@@ -51,7 +64,7 @@ func CreateEventDesktop(c *gin.Context) {
 	SetNotification(event.Title, startTime, "TimelineWallpaperDesktop")
 
 	if err := initializers.DB.Create(&event).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, event)
@@ -61,18 +74,18 @@ func CreateEventDesktop(c *gin.Context) {
 func DeleteEventDesktop(c *gin.Context) {
 	idParam := c.Param("id")
 	if idParam == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID harus disertakan"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "ID harus disertakan"})
 		return
 	}
 
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID tidak valid"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "ID tidak valid"})
 		return
 	}
 
 	if err := initializers.DB.Where("id = ?", uint(id)).Delete(&models.TimelineDesktop{}).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -84,22 +97,22 @@ func DeleteEventDesktop(c *gin.Context) {
 func GetResourcesDesktop(c *gin.Context) {
 	var resources []models.ResourceDesktop
 	if err := initializers.DB.Find(&resources).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"resources": resources})
+	c.JSON(http.StatusOK, resources)
 }
 
 // CreateResource creates a new resource
 func CreateResourceDesktop(c *gin.Context) {
 	var resource models.ResourceDesktop
 	if err := c.ShouldBindJSON(&resource); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
 	if err := initializers.DB.Create(&resource).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, resource)
@@ -109,7 +122,7 @@ func CreateResourceDesktop(c *gin.Context) {
 func DeleteResourceDesktop(c *gin.Context) {
 	id := c.Param("id")
 	if err := initializers.DB.Where("id = ?", id).Delete(&models.ResourceDesktop{}).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -119,14 +132,14 @@ func ExportTimelineDesktopToExcel(c *gin.Context) {
 	// Ambil data dari model JadwalCuti
 	var events_timeline []models.TimelineDesktop
 	if err := initializers.DB.Find(&events_timeline).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
 	// Ambil data resources untuk digunakan dalam setMonthDataProject
 	var resources []models.ResourceDesktop
 	if err := initializers.DB.Find(&resources).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -206,12 +219,12 @@ func setMonthDataDesktop(f *excelize.File, sheet, month string, rowOffset, colOf
 
 			// Cek apakah ada event pada hari ini
 			for _, event := range events {
-				startDate, err := time.Parse("2006-01-02 15:04:05", event.Start)
+				startDate, err := time.Parse("2006-01-02", event.Start)
 				if err != nil {
 					log.Printf("Error parsing start date for event %s: %v", event.Title, err)
 					continue
 				}
-				endDate, err := time.Parse("2006-01-02 15:04:05", event.End)
+				endDate, err := time.Parse("2006-01-02", event.End)
 				if err != nil {
 					log.Printf("Error parsing end date for event %s: %v", event.Title, err)
 					continue
@@ -277,129 +290,128 @@ func setMonthDataDesktop(f *excelize.File, sheet, month string, rowOffset, colOf
 		firstDay = 0             // Reset firstDay for subsequent weeks
 	}
 
-		// custom rows height
-		height := map[int]float64{
-			1 + rowOffset: 45, 3 + rowOffset: 22, 5 + rowOffset: 30, 7 + rowOffset: 30,
-			9 + rowOffset: 30, 11 + rowOffset: 30, 13 + rowOffset: 30, 15 + rowOffset: 30,
+	// custom rows height
+	height := map[int]float64{
+		1 + rowOffset: 45, 3 + rowOffset: 22, 5 + rowOffset: 30, 7 + rowOffset: 30,
+		9 + rowOffset: 30, 11 + rowOffset: 30, 13 + rowOffset: 30, 15 + rowOffset: 30,
+	}
+	top := excelize.Border{Type: "top", Style: 1, Color: "DADEE0"}
+	left := excelize.Border{Type: "left", Style: 1, Color: "DADEE0"}
+	right := excelize.Border{Type: "right", Style: 1, Color: "DADEE0"}
+	bottom := excelize.Border{Type: "bottom", Style: 1, Color: "DADEE0"}
+
+	// set each cell value
+	for r, row := range data {
+		if addr, err = excelize.JoinCellName(string('B'+colOffset), r); err != nil {
+			fmt.Println(err)
+			return
 		}
-		top := excelize.Border{Type: "top", Style: 1, Color: "DADEE0"}
-		left := excelize.Border{Type: "left", Style: 1, Color: "DADEE0"}
-		right := excelize.Border{Type: "right", Style: 1, Color: "DADEE0"}
-		bottom := excelize.Border{Type: "bottom", Style: 1, Color: "DADEE0"}
-	
-		// set each cell value
-		for r, row := range data {
-			if addr, err = excelize.JoinCellName(string('B'+colOffset), r); err != nil {
-				fmt.Println(err)
+		if err = f.SetSheetRow(sheet, addr, &row); err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	// set custom row height
+	for r, ht := range height {
+		if err = f.SetRowHeight(sheet, r, ht); err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	// set custom column width
+	if err = f.SetColWidth(sheet, string('B'+colOffset), string('H'+colOffset), 15); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// merge cell for the 'MONTH'
+	if err = f.MergeCell(sheet, fmt.Sprintf("%s%d", string('B'+colOffset), 1+rowOffset), fmt.Sprintf("%s%d", string('D'+colOffset), 1+rowOffset)); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// define font style for the 'MONTH'
+	if monthStyle, err = f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Color: "1f7f3b", Bold: true, Size: 22, Family: "Arial"},
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// set font style for the 'MONTH'
+	if err = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", string('B'+colOffset), 1+rowOffset), fmt.Sprintf("%s%d", string('D'+colOffset), 1+rowOffset), monthStyle); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// define style for the 'SUNDAY' to 'SATURDAY'
+	if titleStyle, err = f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Color: "1f7f3b", Size: 10, Bold: true, Family: "Arial"},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"E6F4EA"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Vertical: "center", Horizontal: "center"},
+		Border:    []excelize.Border{{Type: "top", Style: 2, Color: "1f7f3b"}},
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// set style for the 'SUNDAY' to 'SATURDAY'
+	if err = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", string('B'+colOffset), 3+rowOffset), fmt.Sprintf("%s%d", string('H'+colOffset), 3+rowOffset), titleStyle); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// define cell border for the date cell in the date range
+	if dataStyle, err = f.NewStyle(&excelize.Style{
+		Border: []excelize.Border{top, left, right},
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// set cell border for the date cell in the date range
+	for _, r := range []int{4, 6, 8, 10, 12, 14} {
+		if err = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", string('B'+colOffset), r+rowOffset),
+			fmt.Sprintf("%s%d", string('H'+colOffset), r+rowOffset), dataStyle); err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	// define cell border for the blank cell in the date range
+	if blankStyle, err = f.NewStyle(&excelize.Style{
+		Border:    []excelize.Border{left, right, bottom},
+		Font:      &excelize.Font{Size: 9},
+		Alignment: &excelize.Alignment{WrapText: true},
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// set cell border for the blank cell in the date range, but only for cells that don't have a fill color
+	for _, r := range []int{5, 7, 9, 11, 13, 15} {
+		for c := 0; c < 7; c++ {
+			cellAddr, _ := excelize.JoinCellName(string('B'+colOffset+c), r+rowOffset)
+			if styleID, err := f.GetCellStyle(sheet, cellAddr); err != nil {
+				// Handle error
+				fmt.Println("Error mendapatkan gaya sel:", err)
 				return
-			}
-			if err = f.SetSheetRow(sheet, addr, &row); err != nil {
-				fmt.Println(err)
-				return
-			}
-		}
-		// set custom row height
-		for r, ht := range height {
-			if err = f.SetRowHeight(sheet, r, ht); err != nil {
-				fmt.Println(err)
-				return
-			}
-		}
-	
-		// set custom column width
-		if err = f.SetColWidth(sheet, string('B'+colOffset), string('H'+colOffset), 15); err != nil {
-			fmt.Println(err)
-			return
-		}
-	
-		// merge cell for the 'MONTH'
-		if err = f.MergeCell(sheet, fmt.Sprintf("%s%d", string('B'+colOffset), 1+rowOffset), fmt.Sprintf("%s%d", string('D'+colOffset), 1+rowOffset)); err != nil {
-			fmt.Println(err)
-			return
-		}
-	
-		// define font style for the 'MONTH'
-		if monthStyle, err = f.NewStyle(&excelize.Style{
-			Font: &excelize.Font{Color: "1f7f3b", Bold: true, Size: 22, Family: "Arial"},
-		}); err != nil {
-			fmt.Println(err)
-			return
-		}
-	
-		// set font style for the 'MONTH'
-		if err = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", string('B'+colOffset), 1+rowOffset), fmt.Sprintf("%s%d", string('D'+colOffset), 1+rowOffset), monthStyle); err != nil {
-			fmt.Println(err)
-			return
-		}
-	
-		// define style for the 'SUNDAY' to 'SATURDAY'
-		if titleStyle, err = f.NewStyle(&excelize.Style{
-			Font:      &excelize.Font{Color: "1f7f3b", Size: 10, Bold: true, Family: "Arial"},
-			Fill:      excelize.Fill{Type: "pattern", Color: []string{"E6F4EA"}, Pattern: 1},
-			Alignment: &excelize.Alignment{Vertical: "center", Horizontal: "center"},
-			Border:    []excelize.Border{{Type: "top", Style: 2, Color: "1f7f3b"}},
-		}); err != nil {
-			fmt.Println(err)
-			return
-		}
-	
-		// set style for the 'SUNDAY' to 'SATURDAY'
-		if err = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", string('B'+colOffset), 3+rowOffset), fmt.Sprintf("%s%d", string('H'+colOffset), 3+rowOffset), titleStyle); err != nil {
-			fmt.Println(err)
-			return
-		}
-	
-		// define cell border for the date cell in the date range
-		if dataStyle, err = f.NewStyle(&excelize.Style{
-			Border: []excelize.Border{top, left, right},
-		}); err != nil {
-			fmt.Println(err)
-			return
-		}
-	
-		// set cell border for the date cell in the date range
-		for _, r := range []int{4, 6, 8, 10, 12, 14} {
-			if err = f.SetCellStyle(sheet, fmt.Sprintf("%s%d", string('B'+colOffset), r+rowOffset),
-				fmt.Sprintf("%s%d", string('H'+colOffset), r+rowOffset), dataStyle); err != nil {
-				fmt.Println(err)
-				return
-			}
-		}
-	
-		// define cell border for the blank cell in the date range
-		if blankStyle, err = f.NewStyle(&excelize.Style{
-			Border:    []excelize.Border{left, right, bottom},
-			Font:      &excelize.Font{Size: 9},
-			Alignment: &excelize.Alignment{WrapText: true},
-		}); err != nil {
-			fmt.Println(err)
-			return
-		}
-	
-		// set cell border for the blank cell in the date range, but only for cells that don't have a fill color
-		for _, r := range []int{5, 7, 9, 11, 13, 15} {
-			for c := 0; c < 7; c++ {
-				cellAddr, _ := excelize.JoinCellName(string('B'+colOffset+c), r+rowOffset)
-				if styleID, err := f.GetCellStyle(sheet, cellAddr); err != nil {
-					// Handle error
-					fmt.Println("Error mendapatkan gaya sel:", err)
+			} else if styleID == 0 {
+				// Jika tidak ada gaya yang diterapkan, maka terapkan blankStyle
+				if err = f.SetCellStyle(sheet, cellAddr, cellAddr, blankStyle); err != nil {
+					fmt.Println("Error menerapkan blankStyle:", err)
 					return
-				} else if styleID == 0 {
-					// Jika tidak ada gaya yang diterapkan, maka terapkan blankStyle
-					if err = f.SetCellStyle(sheet, cellAddr, cellAddr, blankStyle); err != nil {
-						fmt.Println("Error menerapkan blankStyle:", err)
-						return
-					}
 				}
 			}
 		}
-	
-		// hide gridlines for the worksheet
-		disable := false
-		if err := f.SetSheetView(sheet, 0, &excelize.ViewOptions{
-			ShowGridLines: &disable,
-		}); err != nil {
-			fmt.Println(err)
-		}
 	}
-	
+
+	// hide gridlines for the worksheet
+	disable := false
+	if err := f.SetSheetView(sheet, 0, &excelize.ViewOptions{
+		ShowGridLines: &disable,
+	}); err != nil {
+		fmt.Println(err)
+	}
+}

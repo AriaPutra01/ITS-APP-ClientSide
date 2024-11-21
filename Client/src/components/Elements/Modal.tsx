@@ -12,21 +12,21 @@ import {
 type Props = {
   children: React.ReactNode;
   isOpen: boolean;
-  trigger: {
-    onOpen: React.ReactNode;
-    onClose: React.ReactNode;
+  trigger?: {
+    onOpen?: React.ReactNode;
+    onClose?: React.ReactNode;
   };
 };
 
-const Modal = ({ children, isOpen, trigger: { onOpen, onClose } }: Props) => {
+const Modal = ({ children, isOpen, trigger }: Props) => {
   return (
     <AlertDialog open={isOpen}>
-      <AlertDialogTrigger asChild>{onOpen}</AlertDialogTrigger>
+      <AlertDialogTrigger asChild>{trigger?.onOpen}</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           {children}
           <AlertDialogCancel asChild className="absolute top-2 right-4">
-            {onClose}
+            {trigger?.onClose}
           </AlertDialogCancel>
         </AlertDialogHeader>
       </AlertDialogContent>

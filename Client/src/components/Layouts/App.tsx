@@ -1,18 +1,24 @@
-import { MdOutlineDashboard } from "react-icons/md";
-import { HiOutlineClipboardDocumentList } from "react-icons/hi2";
-import { GoProjectSymlink } from "react-icons/go";
-import { GrPlan } from "react-icons/gr";
-import { SlEnvolopeLetter } from "react-icons/sl";
-import { FiUsers } from "react-icons/fi";
-import { BiLogOut } from "react-icons/bi";
-import { VscGitPullRequestGoToChanges } from "react-icons/vsc";
 import Sidebar, {
   SidebarItem,
   SidebarCollapse,
-} from "@/components/Elements/Sidebar";
-import Header from "@/components/Elements/Header";
-import { useToken } from "@/features/MainData/hooks/useToken";
+} from "@/components/Fragments/features/Sidebar";
+import Header from "@/components/Fragments/Notification/Header";
+import { usePostData } from "@/features/MainData/hooks/useAPI";
+import { useToken } from "@/hooks/useToken";
 import { MiddlewareProvider } from "@/lib/middleware";
+import {
+  Activity,
+  Earth,
+  FileArchive,
+  FileBox,
+  HandPlatterIcon,
+  LayoutDashboard,
+  LogOut,
+  Timer,
+  User,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { TimerToast } from "../Elements/Toast";
 
 const App = ({
   services,
@@ -21,30 +27,29 @@ const App = ({
   services: string | undefined;
   children: React.ReactNode;
 }) => {
-  const { token, userDetails } = useToken();
+  const { userDetails } = useToken();
 
-  // Logout user
+  // API LOGOUT
+  const Logout = usePostData({
+    axios: {
+      url: "/logout",
+    },
+  });
+
+  // PINDAH HALAMAN
+  const navigate = useNavigate();
+
+  // HANDLE LOGOUT
   const handleSignOut = async () => {
-    try {
-      // Panggil endpoint logout
-      const response = await fetch("http://localhost:8080/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include", // Sertakan cookie dalam permintaan
-      });
-
-      if (response.ok) {
-        window.location.href = "/login";
-      } else {
-        await response.json();
-        alert("Logout gagal");
-      }
-    } catch (error) {
-      alert("Terjadi kesalahan saat melakukan logout");
-    }
+    await Logout.mutateAsync(undefined, {
+      onSuccess: ({ data }: any) => {
+        TimerToast("success", "Logout Berhasil!", data.message);
+        navigate("/login");
+      },
+      onError: ({ response }: any) => {
+        TimerToast("error", "Logout Gagal!", response.data.message);
+      },
+    });
   };
 
   return (
@@ -59,22 +64,20 @@ const App = ({
           <SidebarItem
             href="/dashboard"
             text="Dashboard"
-            icon={<MdOutlineDashboard />}
+            icon={<LayoutDashboard />}
           />
-          <SidebarCollapse
-            text="Dokumen"
-            icon={<HiOutlineClipboardDocumentList />}>
+          <SidebarCollapse text="Dokumen" icon={<FileArchive />}>
             <SidebarItem href="/memo" text="Memo" />
             <SidebarItem href={"/berita-acara"} text="Berita Acara" />
             <SidebarItem href="/surat" text="Surat" />
             <SidebarItem href="/sk" text="Sk" />
             <SidebarItem href="/perjalanan-dinas" text="Perjalanan Dinas" />
           </SidebarCollapse>
-          <SidebarCollapse text="Project" icon={<GoProjectSymlink />}>
+          <SidebarCollapse text="Project" icon={<FileBox />}>
             <SidebarItem href="/project" text="Project" />
             <SidebarItem href="/base-project" text="Base Project" />
           </SidebarCollapse>
-          <SidebarCollapse text="Kegiatan" icon={<GrPlan />}>
+          <SidebarCollapse text="Kegiatan" icon={<Activity />}>
             <SidebarItem
               href="/timeline-desktop"
               text="Timeline Wallpaper Desktop"
@@ -84,30 +87,30 @@ const App = ({
             <SidebarItem href="/jadwal-cuti" text="Jadwal Cuti" />
             <SidebarItem href="/meeting" text="Meeting" />
           </SidebarCollapse>
-          <SidebarCollapse text="Weekly Timeline" icon={<GrPlan />}>
+          <SidebarCollapse text="Weekly Timeline" icon={<Timer />}>
             <SidebarItem href="/timeline-project" text="Timeline Project" />
             <SidebarItem href="/meeting-schedule" text="Meeting Schedule" />
           </SidebarCollapse>
-          <SidebarCollapse text="Informasi" icon={<SlEnvolopeLetter />}>
+          <SidebarCollapse text="Informasi" icon={<Earth />}>
             <SidebarItem href="/surat-masuk" text="Surat Masuk" />
             <SidebarItem href="/surat-keluar" text="Surat Keluar" />
             <SidebarItem href="/arsip" text="Arsip" />
           </SidebarCollapse>
           {userDetails.role !== "user" && (
-            <SidebarItem href="/user" text="User" icon={<FiUsers />} />
+            <SidebarItem href="/user" text="User" icon={<User />} />
           )}
 
           {userDetails.role !== "user" && (
             <SidebarItem
               href="/request"
               text="Request"
-              icon={<VscGitPullRequestGoToChanges />}
+              icon={<HandPlatterIcon />}
             />
           )}
           <SidebarItem
             onClick={handleSignOut}
             text="Logout"
-            icon={<BiLogOut />}
+            icon={<LogOut />}
           />
         </Sidebar>
       </div>

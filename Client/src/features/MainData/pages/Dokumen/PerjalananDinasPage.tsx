@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import App from "@/components/Layouts/App";
 import Table from "@/features/MainData/components/Sections/Table/DynamicTable";
-import FilterTableCell from "@/Utils/FilterTableCell";
+import FilterTableCell from "@/lib/FilterTableCell";
 import { TableLoading } from "@/features/MainData/components/Elements/Loading/TableLoading";
 import { useFilter } from "@/features/MainData/hooks/useFilter";
 import {
@@ -11,15 +11,17 @@ import {
   usePostData,
 } from "@/features/MainData/hooks/useAPI";
 import { useFormStore } from "@/features/MainData/store/FormStore";
-import { UploadFields } from "@/config/config/Upload";
+import { UploadFields } from "@/config/FormConfig/upload";
 import { useSelectionDeletion } from "@/features/MainData/hooks/useSelectionDeletion";
 import ShowDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/ShowDialog";
 import AddForm from "@/features/MainData/components/Sections/Table/Actions/Columns/AddForm";
 import DeleteDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/DeleteDialog";
 import EditForm from "@/features/MainData/components/Sections/Table/Actions/Columns/EditForm";
 import UploadForm from "@/features/MainData/components/Sections/Table/Actions/Columns/UploadForm";
-import { useToken } from "@/features/MainData/hooks/useToken";
+import { useToken } from "@/hooks/useToken";
 import { extractMiddle } from "@/features/MainData/hooks/useFormat";
+import { Excel } from "@/Utils/Excel";
+import { useFilterCheckbox } from "@/features/MainData/hooks/useFilterCheckbox";
 // PERJALANAN DINAS
 import { PerdinFields } from "@/features/MainData/config/formFields/Dokumen/Perdin";
 
@@ -29,7 +31,7 @@ export default function Perdin() {
 
   // FORM STORE
   const { initialData, setInitialData, setFields } = useFormStore();
-  
+
   // FETCH & MUTATION HOOKs
   const { data: Perdins, isLoading } = useFetchData({
     queryKey: ["perdins"],
@@ -111,7 +113,10 @@ export default function Perdin() {
               event={{
                 onOpen: () => {
                   setFields(PerdinFields);
-                  setInitialData({...data, no_perdin: extractMiddle(data.no_perdin)});
+                  setInitialData({
+                    ...data,
+                    no_perdin: extractMiddle(data.no_perdin),
+                  });
                 },
                 onClose: () => {
                   setFields([]);
@@ -120,7 +125,7 @@ export default function Perdin() {
               }}
               form={{
                 mutation: PutPerdin,
-                queryKey: ["perdins"], 
+                queryKey: ["perdins"],
               }}
             />
             <UploadForm
@@ -147,7 +152,7 @@ export default function Perdin() {
       },
     ];
 
-    return [ ...actionColumns];
+    return [...actionColumns];
   }, [PerdinFields, initialData]);
 
   // DELETE SELECTION
@@ -177,14 +182,40 @@ export default function Perdin() {
           },
         }}
       />
+      <Excel
+        link={{
+          exportThis: "/exportPerdin",
+          import: "/uploadPerdin",
+          exportAll: true,
+        }}
+        invalidateKey={["perdins"]}
+      />
     </div>
   );
 
   // FILTER NO PERDIN
-  const { filteredData, renderFilter } = useFilter({
+  const { filteredData: filteredData1, renderFilter: renderFilter1 } = useFilter({
     data: Perdins,
     filteredItem: "no_perdin",
   });
+
+  const { filteredData: filteredData2, renderFilter: renderFilter2 } =
+    useFilterCheckbox({
+      data: Perdins,
+      filter: { "ITS-ISO": true, "ITS-SAG": true },
+      filteredItem: "no_perdin",
+    });
+
+  // State untuk menyimpan hasil gabungan
+  const [finalFilteredData, setFinalFilteredData] = useState([]);
+
+  // Sinkronisasi hasil filter
+  useEffect(() => {
+    const intersectedData = filteredData1?.filter((item: any) =>
+      filteredData2.includes(item)
+    );
+    setFinalFilteredData(intersectedData);
+  }, [filteredData1, filteredData2]);
 
   return (
     <App services="Perdin">
@@ -195,10 +226,15 @@ export default function Perdin() {
           <Table
             title="Perdin"
             columns={columns}
-            data={filteredData || []}
+            data={finalFilteredData || []}
             CustomHeader={{
               left: renderSubHeader,
-              right: renderFilter,
+              right: (
+                <div className="flex gap-4">
+                {renderFilter2}
+                {renderFilter1}
+              </div>
+              ),
             }}
             SelectedRows={{
               title: "Hapus",

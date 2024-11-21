@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import App from "@/components/Layouts/App";
 import Table from "@/features/MainData/components/Sections/Table/DynamicTable";
-import FilterTableCell from "@/Utils/FilterTableCell";
+import FilterTableCell from "@/lib/FilterTableCell";
 import { TableLoading } from "@/features/MainData/components/Elements/Loading/TableLoading";
 import { useFilter } from "@/features/MainData/hooks/useFilter";
 import {
@@ -11,15 +11,17 @@ import {
   usePostData,
 } from "@/features/MainData/hooks/useAPI";
 import { useFormStore } from "@/features/MainData/store/FormStore";
-import { UploadFields } from "@/config/config/Upload";
+import { UploadFields } from "@/config/FormConfig/upload";
 import { useSelectionDeletion } from "@/features/MainData/hooks/useSelectionDeletion";
 import ShowDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/ShowDialog";
 import AddForm from "@/features/MainData/components/Sections/Table/Actions/Columns/AddForm";
 import DeleteDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/DeleteDialog";
 import EditForm from "@/features/MainData/components/Sections/Table/Actions/Columns/EditForm";
 import UploadForm from "@/features/MainData/components/Sections/Table/Actions/Columns/UploadForm";
-import { useToken } from "@/features/MainData/hooks/useToken";
+import { useToken } from "@/hooks/useToken";
 import { extractMiddle } from "@/features/MainData/hooks/useFormat";
+import { Excel } from "@/Utils/Excel";
+import { useFilterCheckbox } from "@/features/MainData/hooks/useFilterCheckbox";
 // MEMO
 import { BeritaAcaraFields } from "@/features/MainData/config/formFields/Dokumen/BeritaAcara";
 
@@ -32,7 +34,7 @@ export default function BeritaAcara() {
 
   // FETCH & MUTATION HOOKs
   const { data: beritaAcaras, isLoading } = useFetchData({
-    queryKey:  ["berita_acaras"],
+    queryKey: ["berita_acaras"],
     axios: {
       url: "/beritaAcara",
     },
@@ -73,7 +75,7 @@ export default function BeritaAcara() {
         cell: (data: any) => (
           <div className="flex gap-1">
             <ShowDialog
-              title={`Form detail data ${initialData?.no_surat}`} 
+              title={`Form detail data ${initialData?.no_surat}`}
               event={{
                 onOpen: () => {
                   setFields([
@@ -105,7 +107,10 @@ export default function BeritaAcara() {
               event={{
                 onOpen: () => {
                   setFields(BeritaAcaraFields);
-                  setInitialData({...data,no_surat: extractMiddle(data.no_surat) });
+                  setInitialData({
+                    ...data,
+                    no_surat: extractMiddle(data.no_surat),
+                  });
                 },
                 onClose: () => {
                   setFields([]);
@@ -170,15 +175,42 @@ export default function BeritaAcara() {
             setFields([]);
           },
         }}
+        />
+        <Excel
+        link={{
+          exportThis: "/exportBeritaAcara",
+          import: "/uploadBeritaAcara",
+          exportAll: true,
+        }}
+        invalidateKey={["berita_acaras"]}
       />
     </div>
   );
 
   // FILTER NOSURAT
-  const { filteredData, renderFilter } = useFilter({
+  const { filteredData: filteredData1, renderFilter: renderFilter1 } = useFilter({
     data: beritaAcaras,
     filteredItem: "no_surat",
   });
+
+  const { filteredData: filteredData2, renderFilter: renderFilter2 } =
+    useFilterCheckbox({
+      data: beritaAcaras,
+      filter: { "ITS-ISO": true, "ITS-SAG": true },
+      filteredItem: "no_surat",
+    });
+
+    // State untuk menyimpan hasil gabungan
+  const [finalFilteredData, setFinalFilteredData] = useState([]);
+
+  // Sinkronisasi hasil filter
+  useEffect(() => {
+    const intersectedData = filteredData1?.filter((item: any) =>
+      filteredData2.includes(item)
+    );
+    setFinalFilteredData(intersectedData);
+  }, [filteredData1, filteredData2]);
+
 
   return (
     <App services="Berita Acara">
@@ -189,10 +221,15 @@ export default function BeritaAcara() {
           <Table
             title="Berita Acara"
             columns={columns}
-            data={filteredData || []}
+            data={finalFilteredData || []}
             CustomHeader={{
               left: renderSubHeader,
-              right: renderFilter,
+              right:(
+                <div className="flex gap-4">
+                  {renderFilter2}
+                  {renderFilter1}
+                </div>
+              ),
             }}
             SelectedRows={{
               title: "Hapus",

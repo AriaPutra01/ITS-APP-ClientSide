@@ -21,7 +21,7 @@ func GetEventsProject(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"events": events})
+	c.JSON(http.StatusOK,  events)
 }
 
 // CreateEventTimeline creates a new timeline event
@@ -90,7 +90,7 @@ func GetResourcesProject(c *gin.Context) {
 	}
 
 	// Mengembalikan resources sebagai array
-	c.JSON(http.StatusOK, gin.H{"resources": resources})
+	c.JSON(http.StatusOK,  resources)
 }
 
 // CreateResource creates a new resource

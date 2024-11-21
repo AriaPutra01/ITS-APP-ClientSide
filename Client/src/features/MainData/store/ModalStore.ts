@@ -1,5 +1,14 @@
 import { create } from "zustand";
 
+type Modal =
+  | "addModal"
+  | "editModal"
+  | "showModal"
+  | "deleteModal"
+  | "uploadModal"
+  | "calendarModal"
+  | "notificationModal";
+
 interface ModalStore {
   modals: {
     addModal: boolean;
@@ -7,9 +16,11 @@ interface ModalStore {
     showModal: boolean;
     deleteModal: boolean;
     uploadModal: boolean;
+    calendarModal: boolean;
+    notificationModal: boolean;
   };
-  openModal: (modalName: string) => void;
-  closeModal: (modalName: string) => void;
+  openModal: (modalName: Modal) => void;
+  closeModal: (modalName: Modal) => void;
   resetModals: () => void;
 }
 
@@ -20,6 +31,8 @@ export const useModalStore = create<ModalStore>((set) => ({
     showModal: false,
     deleteModal: false,
     uploadModal: false,
+    calendarModal: false,
+    notificationModal: false,
   },
   openModal: (modalName) =>
     set((state) => ({
@@ -37,6 +50,8 @@ export const useModalStore = create<ModalStore>((set) => ({
         showModal: false,
         deleteModal: false,
         uploadModal: false,
+        calendarModal: false,
+        notificationModal: false,
       },
     }),
 }));

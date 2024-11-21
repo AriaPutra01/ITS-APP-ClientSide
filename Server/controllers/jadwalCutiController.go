@@ -21,7 +21,7 @@ func GetEventsCuti(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"cuti": events})
+	c.JSON(http.StatusOK, events)
 }
 
 // Example of using generated UUID

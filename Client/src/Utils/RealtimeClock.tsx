@@ -1,39 +1,20 @@
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import { id } from "date-fns/locale/id";
+import React, { useState, useEffect } from 'react';
+import dayjs from "@/lib/dayjs";
+import { Detik } from '@/lib/time';
 
 export function RealtimeDate() {
-  const [waktuSekarang, setWaktuSekarang] = useState(new Date());
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setWaktuSekarang(new Date());
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, []);
-
-  const tanggal = format(waktuSekarang, "EEEE, dd MMMM yyyy", {
-    locale: id,
-  });
-
-  return tanggal;
+  return dayjs().format("dddd, DD MMMM YYYY");
 }
 
 export function RealtimeClock() {
-  const [waktuSekarang, setWaktuSekarang] = useState(new Date());
+  const [time, setTime] = useState(dayjs().format("HH:mm:ss"));
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setWaktuSekarang(new Date());
-    }, 1000);
-
-    return () => clearInterval(intervalId);
+    const interval = setInterval(() => {
+      setTime(dayjs().format("HH:mm:ss"));
+    }, Detik(1));
+    return () => clearInterval(interval); // Bersihkan interval saat komponen di-unmount
   }, []);
 
-  const jam = format(waktuSekarang, "HH:mm:ss", {
-    locale: id,
-  });
-
-  return jam;
+  return <div>{time}</div>
 }

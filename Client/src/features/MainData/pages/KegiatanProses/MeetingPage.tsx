@@ -1,133 +1,222 @@
-import React, { useState } from "react";
+import { useMemo } from "react";
 import App from "@/components/Layouts/App";
-import { ReusableTable } from "../../../../components/Fragments/Services/ReusableTable";
-import { jwtDecode } from "jwt-decode";
+import Table from "@/features/MainData/components/Sections/Table/DynamicTable";
+import FilterTableCell from "@/lib/FilterTableCell";
+import { TableLoading } from "@/features/MainData/components/Elements/Loading/TableLoading";
+import { useFilter } from "@/features/MainData/hooks/useFilter";
 import {
-  addMeeting,
-  deleteMeeting,
-  getMeetings,
-  updateMeeting,
-  getMeetingShow,
-} from "../../../../../API/KegiatanProses/Meeting.service";
-import { Modal, Button } from "flowbite-react"; // Import Modal dan Button dari flowbite-react
-import { FormatDate } from "../../../../Utils/FormatDate";
-import { useToken } from "../../hooks/useToken";
+  useFetchData,
+  useDeleteData,
+  usePutData,
+  usePostData,
+} from "@/features/MainData/hooks/useAPI";
+import { useFormStore } from "@/features/MainData/store/FormStore";
+import { UploadFields } from "@/config/FormConfig/upload";
+import { useSelectionDeletion } from "@/features/MainData/hooks/useSelectionDeletion";
+import ShowDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/ShowDialog";
+import AddForm from "@/features/MainData/components/Sections/Table/Actions/Columns/AddForm";
+import DeleteDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/DeleteDialog";
+import EditForm from "@/features/MainData/components/Sections/Table/Actions/Columns/EditForm";
+import UploadForm from "@/features/MainData/components/Sections/Table/Actions/Columns/UploadForm";
+import { useToken } from "@/hooks/useToken";
+import statusCell from "@/features/MainData/lib/statusCell";
+import { Excel } from "@/Utils/Excel";
+// MEETING
+import { MeetingFields } from "@/features/MainData/config/formFields/KegiatanProses/Meeting";
 
-export function MeetingPage() {
-  const [formConfig, setFormConfig] = useState({
-    fields: [
-      {
-        name: "task",
-        label: "Task",
-        type: "text",
-        required: true,
-      },
-      {
-        name: "tindak_lanjut",
-        label: "Tindak Lanjut",
-        type: "text",
-        required: true,
-      },
-      {
-        name: "status",
-        label: "Status",
-        type: "select",
-        options: ["Done", "On Progress", "Cancel"],
-        required: true,
-      },
-      {
-        name: "update_pengerjaan",
-        label: "Update Pengerjaan",
-        type: "text",
-        required: false,
-      },
-      { name: "pic", label: "Pic", type: "text", required: true },
-      {
-        name: "tanggal_target",
-        label: "Tanggal Target",
-        type: "date",
-        required: true,
-      },
-      {
-        name: "tanggal_actual",
-        label: "Tanggal Actual",
-        type: "date",
-        required: true,
-      },
-    ],
-    services: "Meeting",
+export default function MeetingSchedule() {
+  // TOKEN
+  const { userDetails } = useToken();
+
+  // FORM STORE
+  const { initialData, setInitialData, setFields } = useFormStore();
+
+  // FETCH & MUTATION HOOKs
+  const { data: Meeting, isLoading } = useFetchData({
+    queryKey: ["meetings"],
+    axios: {
+      url: "/meetings",
+    },
   });
-  const { token } = useToken(); // Ambil token dari context
-  let userRole = "";
-  if (token) {
-    const decoded = jwtDecode(token);
-    userRole = decoded.role;
-  }
+  const PostMeeting = usePostData({
+    axios: {
+      url: "/meetings",
+    },
+  });
+  const DeleteMeeting = useDeleteData({
+    axios: {
+      url: "/meetings",
+    },
+  });
+  const PutMeeting = usePutData({
+    axios: {
+      url: "/meetings",
+      id: initialData.ID,
+    },
+  });
 
-  const [isShowModalOpen, setIsShowModalOpen] = useState(false);
-  const [selectedMeeting, setSelectedMeeting] = useState(null);
+  // COLUMN
+  const columns = useMemo(() => {
+    const baseColumns = MeetingFields.filter(
+      (field) => field.name !== "status"
+    ).map((field) => ({
+      name: field.label,
+      selector: (row: any) => FilterTableCell(field, row[field.name]),
+      sortable: true,
+    }));
 
-  const handleShow = async (id) => {
-    try {
-      const meeting = await getMeetingShow(id);
-      setSelectedMeeting(meeting);
-      setIsShowModalOpen(true);
-    } catch (error) {
-      console.error("Error fetching Meeting:", error);
-    }
-  };
+    const actionColumns = [
+      {
+        name: "Status",
+        selector: (row: any) => row.status,
+        conditionalCellStyles: statusCell(),
+      },
+      {
+        name: "Action By",
+        selector: (row: any) => row.create_by,
+        sortable: true,
+      },
+      {
+        name: "Action",
+        cell: (data: any) => (
+          <div className="flex gap-1">
+            <ShowDialog
+              title={`Form detail data ${initialData.ID}`}
+              event={{
+                onOpen: () => {
+                  setFields([
+                    ...MeetingFields,
+                    { name: "create_by", label: "Action By" },
+                  ]);
+                  setInitialData(data);
+                },
+                onClose: () => {
+                  setFields([]);
+                  setInitialData({});
+                },
+              }}
+            />
+            <DeleteDialog
+              title={`Hapus data ${initialData.ID}`}
+              event={{
+                onOpen: () => setInitialData(data),
+                onClose: () => setInitialData({}),
+              }}
+              form={{
+                id: initialData.ID,
+                mutation: DeleteMeeting,
+                queryKey: ["meetings"],
+              }}
+            />
+            <EditForm
+              title={`Form edit data ${initialData?.ID}`}
+              event={{
+                onOpen: () => {
+                  setFields(MeetingFields);
+                  setInitialData(data);
+                },
+                onClose: () => {
+                  setFields([]);
+                  setInitialData({});
+                },
+              }}
+              form={{
+                mutation: PutMeeting,
+                queryKey: ["meetings"],
+              }}
+            />
+            <UploadForm
+              title={`Form upload data ${initialData?.ID}`}
+              event={{
+                onOpen: () => {
+                  setFields(UploadFields);
+                  setInitialData(data);
+                },
+                onClose: () => {
+                  setFields([]);
+                  setInitialData({});
+                },
+              }}
+              url={{
+                getUrl: "/filesMeeting",
+                postUrl: "/uploadFileMeeting",
+                downloadUrl: "/downloadMeeting",
+                deleteUrl: "/deleteMeeting",
+              }}
+            />
+          </div>
+        ),
+      },
+    ];
+
+    return [...baseColumns, ...actionColumns];
+  }, [MeetingFields, initialData]);
+
+  // DELETE SELECTION
+  const { handleSelectedDeletion } = useSelectionDeletion({
+    keyField: "ID",
+    mutation: DeleteMeeting,
+    queryKey: ["meetings"],
+  });
+
+  // LEFT SUB HEADER
+  const renderSubHeader = (
+    <div className="flex gap-2">
+      <AddForm
+        title={`Form tambah data Meeting`}
+        form={{
+          mutation: PostMeeting,
+          queryKey: ["meetings"],
+          otherValue: { create_by: userDetails.username },
+        }}
+        event={{
+          onOpen: () => {
+            setFields(MeetingFields);
+            setInitialData({});
+          },
+          onClose: () => {
+            setFields([]);
+          },
+        }}
+      />
+      <Excel
+      link={{
+        exportThis: "/exportMeeting",
+        import: "/uploadMeeting",
+        exportAll: true,
+      }}
+      />
+    </div>
+  );
+
+  // FILTER NOMEMO
+  const { filteredData, renderFilter } = useFilter({
+    data: Meeting,
+    filteredItem: "task",
+  });
 
   return (
-    <App services={formConfig.services}>
-      <div className="overflow-auto">
-        {/* Table */}
-        <ReusableTable
-          formConfig={formConfig}
-          setFormConfig={setFormConfig}
-          get={getMeetings}
-          set={addMeeting}
-          update={updateMeeting}
-          remove={deleteMeeting}
-          excel={{
-            exportThis: "exportMeeting",
-            import: "uploadMeeting",
-          }}
-          InfoColumn={true}
-          StatusColumn={true}
-          OnShow={handleShow}
-          UploadArsip={{
-            get: "filesMeeting",
-            upload: "uploadFileMeeting",
-            download: "downloadMeeting",
-            delete: "deleteMeeting",
-          }}
-        />
-        {/* End Table */}
+    <App services="Meeting">
+      <div className="p-4">
+        {isLoading ? (
+          <TableLoading />
+        ) : (
+          <Table
+            title="Meeting"
+            columns={columns}
+            data={filteredData || []}
+            CustomHeader={{
+              left: renderSubHeader,
+              right: renderFilter,
+            }}
+            SelectedRows={{
+              title: "Hapus",
+              variant: "destructive",
+              action: handleSelectedDeletion,
+            }}
+          />
+        )}
       </div>
-
-      <Modal show={isShowModalOpen} onClose={() => setIsShowModalOpen(false)}>
-        <Modal.Header>Meeting Detail</Modal.Header>
-        <Modal.Body>
-          {selectedMeeting && (
-            <div className="grid grid-cols-2 gap-4">
-              <p className="font-semibold">Task :</p>
-              <p>{selectedMeeting.task}</p>
-              <p className="font-semibold">Tindak Lanjut :</p>
-              <p>{selectedMeeting.tindak_lanjut}</p>
-              <p className="font-semibold">Status :</p>
-              <p>{selectedMeeting.status}</p>
-              <p className="font-semibold">Update Pengerjaan :</p>
-              <p>{selectedMeeting.update_pengerjaan}</p>
-              <p className="font-semibold">Pic :</p>
-              <p>{selectedMeeting.pic}</p>
-              <p className="font-semibold">Tanggal Target :</p>
-              <p>{FormatDate(selectedMeeting.tanggal_target)}</p>
-              <p className="font-semibold">Tanggal Actual :</p>
-              <p>{FormatDate(selectedMeeting.tanggal_actual)}</p>
-            </div>
-          )}
-        </Modal.Body>
-      </Modal>
     </App>
   );
 }

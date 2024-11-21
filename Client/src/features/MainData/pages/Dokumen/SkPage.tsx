@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import App from "@/components/Layouts/App";
 import Table from "@/features/MainData/components/Sections/Table/DynamicTable";
-import FilterTableCell from "@/Utils/FilterTableCell";
+import FilterTableCell from "@/lib/FilterTableCell";
 import { TableLoading } from "@/features/MainData/components/Elements/Loading/TableLoading";
 import { useFilter } from "@/features/MainData/hooks/useFilter";
 import {
@@ -11,15 +11,17 @@ import {
   usePostData,
 } from "@/features/MainData/hooks/useAPI";
 import { useFormStore } from "../../store/FormStore";
-import { UploadFields } from "@/config/config/Upload";
+import { UploadFields } from "@/config/FormConfig/upload";
 import { useSelectionDeletion } from "../../hooks/useSelectionDeletion";
 import ShowDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/ShowDialog";
 import AddForm from "@/features/MainData/components/Sections/Table/Actions/Columns/AddForm";
 import DeleteDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/DeleteDialog";
 import EditForm from "@/features/MainData/components/Sections/Table/Actions/Columns/EditForm";
 import UploadForm from "@/features/MainData/components/Sections/Table/Actions/Columns/UploadForm";
-import { useToken } from "@/features/MainData/hooks/useToken";
+import { useToken } from "@/hooks/useToken";
 import { extractMiddle } from "@/features/MainData/hooks/useFormat";
+import { Excel } from "@/Utils/Excel";
+import { useFilterCheckbox } from "@/features/MainData/hooks/useFilterCheckbox";
 // SK
 import { SkFields } from "@/features/MainData/config/formFields/Dokumen/Sk";
 
@@ -29,7 +31,7 @@ export default function Sk() {
 
   // FORM STORE
   const { initialData, setInitialData, setFields } = useFormStore();
-  
+
   // FETCH & MUTATION HOOKs
   const { data: Sk, isLoading } = useFetchData({
     queryKey: ["sks"],
@@ -105,7 +107,10 @@ export default function Sk() {
               event={{
                 onOpen: () => {
                   setFields(SkFields);
-                  setInitialData({...data, no_surat: extractMiddle(data.no_surat)});
+                  setInitialData({
+                    ...data,
+                    no_surat: extractMiddle(data.no_surat),
+                  });
                 },
                 onClose: () => {
                   setFields([]);
@@ -171,14 +176,40 @@ export default function Sk() {
           },
         }}
       />
+      <Excel
+      link={{
+        exportThis: "/exportSk",
+        import: "/uploadSk",
+        exportAll: true,
+      }}
+      invalidateKey={["sks"]}
+    />
     </div>
   );
 
   // FILTER NOSURAT
-  const { filteredData, renderFilter } = useFilter({
+  const { filteredData: filteredData1, renderFilter: renderFilter1 } = useFilter({
     data: Sk,
     filteredItem: "no_surat",
   });
+
+  const { filteredData: filteredData2, renderFilter: renderFilter2 } =
+    useFilterCheckbox({
+      data: Sk,
+      filter: { "ITS-ISO": true, "ITS-SAG": true },
+      filteredItem: "no_surat",
+    });
+
+  // State untuk menyimpan hasil gabungan
+  const [finalFilteredData, setFinalFilteredData] = useState([]);
+
+  // Sinkronisasi hasil filter
+  useEffect(() => {
+    const intersectedData = filteredData1?.filter((item: any) =>
+      filteredData2.includes(item)
+    );
+    setFinalFilteredData(intersectedData);
+  }, [filteredData1, filteredData2]);
 
   return (
     <App services="Sk">
@@ -189,10 +220,14 @@ export default function Sk() {
           <Table
             title="Sk"
             columns={columns}
-            data={filteredData || []} 
+            data={finalFilteredData || []}
             CustomHeader={{
               left: renderSubHeader,
-              right: renderFilter,
+              right: (
+                <div className="flex gap-4">
+                {renderFilter2}
+                {renderFilter1}
+              </div>),
             }}
             SelectedRows={{
               title: "Hapus",

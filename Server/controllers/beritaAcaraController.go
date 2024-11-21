@@ -50,7 +50,7 @@ func UploadHandlerBeritaAcara(c *gin.Context) {
 		os.MkdirAll(dir, 0755)
 	}
 
-	filePath := filepath.Join(dir, file.Filename)
+	filePath := filepath.ToSlash(filepath.Join(baseDir, id, file.Filename))
 	if err := c.SaveUploadedFile(file, filePath); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Gagal menyimpan file"})
 		return
@@ -76,8 +76,10 @@ func UploadHandlerBeritaAcara(c *gin.Context) {
 func GetFilesByIDBeritaAcara(c *gin.Context) {
 	id := c.Param("id")
 
+	filePathPattern := fmt.Sprintf("C:/UploadedFile/beritaacara/%s/%%", id)
+
 	var files []models.File
-	result := initializers.DB.Where("user_id = ?", id).Find(&files)
+	result := initializers.DB.Where("file_path LIKE ?", filePathPattern).Find(&files)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Gagal mengambil data file"})
 		return
@@ -104,7 +106,7 @@ func DeleteFileHandlerBeritaAcara(c *gin.Context) {
 	log.Printf("Received ID: %s and Filename: %s", id, filename) // Tambahkan log ini
 
 	baseDir := "C:/UploadedFile/beritaacara"
-	fullPath := filepath.Join(baseDir, id, filename)
+	fullPath := filepath.ToSlash(filepath.Join(baseDir, id, filename))
 
 	log.Printf("Attempting to delete file at path: %s", fullPath)
 
@@ -131,7 +133,7 @@ func DownloadFileHandlerBeritaAcara(c *gin.Context) {
 	id := c.Param("id")
 	filename := c.Param("filename")
 	baseDir := "C:/UploadedFile/beritaacara"
-	fullPath := filepath.Join(baseDir, id, filename)
+	fullPath := filepath.ToSlash(filepath.Join(baseDir, id, filename))
 
 	log.Printf("Full path for download: %s", fullPath)
 

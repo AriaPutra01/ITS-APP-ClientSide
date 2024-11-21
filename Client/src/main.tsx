@@ -4,7 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Menit } from "@/lib/time";
-import { TokenProvider } from "./features/MainData/hooks/useToken";
+import { TokenProvider } from "./hooks/useToken";
 // AUTH
 import { Login } from "@/features/Auth/pages/Login";
 // USER
@@ -16,33 +16,33 @@ import NotFound from "@/pages/Error/404";
 import Dashboard from "@/pages/Dashboard";
 // DOKUMEN
 import Memo from "@/features/MainData/pages/Dokumen/Memo";
-import  BeritaAcara  from "@/features/MainData/pages/Dokumen/BeritaAcaraPage";
-import  Sk from "@/features/MainData/pages/Dokumen/SkPage";
-import  Surat from "@/features/MainData/pages/Dokumen/SuratPage";
-import  Perdin  from "@/features/MainData/pages/Dokumen/PerjalananDinasPage";
+import BeritaAcara from "@/features/MainData/pages/Dokumen/BeritaAcaraPage";
+import Sk from "@/features/MainData/pages/Dokumen/SkPage";
+import Surat from "@/features/MainData/pages/Dokumen/SuratPage";
+import Perdin from "@/features/MainData/pages/Dokumen/PerjalananDinasPage";
 // RENCANA KERJA
-import  Project  from "@/features/MainData/pages/RencanaKerja/ProjectPage";
-import { BaseProjectPage } from "@/features/MainData/pages/RencanaKerja/BaseProjectPage";
+import Project from "@/features/MainData/pages/RencanaKerja/ProjectPage";
+import BaseProject from "@/features/MainData/pages/RencanaKerja/BaseProjectPage";
 // KEGIATAN PROSES
-import { TimelineDesktopPage } from "@/features/MainData/pages/KegiatanProses/TimelineDesktopPage";
-import { MeetingPage } from "@/features/MainData/pages/KegiatanProses/MeetingPage";
-import { BookingRapatPage } from "@/features/MainData/pages/KegiatanProses/BookingRapatPage";
-import { JadwalRapatPage } from "@/features/MainData/pages/KegiatanProses/JadwalRapatPage";
-import { JadwalCutiPage } from "@/features/MainData/pages/KegiatanProses/JadwalCutiPage";
+import TimelineDesktop from "@/features/MainData/pages/KegiatanProses/TimelineDesktop";
+import Meeting from "@/features/MainData/pages/KegiatanProses/MeetingPage";
+import BookingRapat from "@/features/MainData/pages/KegiatanProses/BookingRapatPage";
+import JadwalRapat from "@/features/MainData/pages/KegiatanProses/JadwalRapatPage";
+import JadwalCuti from "@/features/MainData/pages/KegiatanProses/JadwalCutiPage";
 // WEEKLY MEETING
-import { TimelineProjectPage } from "@/features/MainData/pages/KegiatanProses/TimelineProjectPage";
-import { MeetingListPage } from "@/features/MainData/pages/KegiatanProses/MeetingListPage";
+import TimelineProject from "@/features/MainData/pages/KegiatanProses/TimelineProject";
+import MeetingShcedule from "@/features/MainData/pages/KegiatanProses/MeetingListPage";
 // DATA INFORMASI
-import  SuratMasuk from "@/features/MainData/pages/DataInformasi/SuratMasukPage";
-import  SuratKeluar from "@/features/MainData/pages/DataInformasi/SuratKeluarPage";
-import  Arsip from "@/features/MainData/pages/DataInformasi/ArsipPage";
+import SuratMasuk from "@/features/MainData/pages/DataInformasi/SuratMasukPage";
+import SuratKeluar from "@/features/MainData/pages/DataInformasi/SuratKeluarPage";
+import Arsip from "@/features/MainData/pages/DataInformasi/ArsipPage";
 //REQUEST
-import { RequestPage } from "@/features/MainData/pages/Request/requestPage";
+import Request from "@/features/MainData/pages/Request/requestPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      select: (data: any) => data?.data || [],
+      select: (data: any) => data?.data,
       refetchIntervalInBackground: true,
       staleTime: Menit(10),
     },
@@ -103,51 +103,51 @@ const router = createBrowserRouter([
   },
   // RENCANA KERJA
   {
-    //TODO
+    //* DONE
     path: "/project",
     element: <Project />,
   },
   {
-    //TODO
+    //* DONE
     path: "/base-project",
-    element: <BaseProjectPage />,
+    element: <BaseProject />,
   },
   // KEGIATAN PROSES
   {
-    //TODO
+    //* DONE
     path: "/timeline-desktop",
-    element: <TimelineDesktopPage />,
+    element: <TimelineDesktop />,
   },
   {
-    //TODO
+    //* DONE
     path: "/booking-rapat",
-    element: <BookingRapatPage />,
+    element: <BookingRapat />,
   },
   {
-    //TODO
+    //* DONE
     path: "/jadwal-rapat",
-    element: <JadwalRapatPage />,
+    element: <JadwalRapat />,
   },
   {
-    //TODO
+    //* DONE
     path: "/jadwal-cuti",
-    element: <JadwalCutiPage />,
+    element: <JadwalCuti />,
   },
   {
-    //TODO
+    //* DONE
     path: "/meeting",
-    element: <MeetingPage />,
+    element: <Meeting />,
   },
   // WEEKLY MEETING
   {
-    //TODO
+    //* DONE
     path: "/timeline-project",
-    element: <TimelineProjectPage />,
+    element: <TimelineProject />,
   },
   {
-    //TODO
+    //* DONE
     path: "/meeting-schedule",
-    element: <MeetingListPage />,
+    element: <MeetingShcedule />,
   },
   // DATA & INFORMASI
   {
@@ -166,9 +166,9 @@ const router = createBrowserRouter([
     element: <Arsip />,
   },
   {
-    //TODO
+    //* DONE
     path: "/request",
-    element: <RequestPage />,
+    element: <Request />,
   },
 ]);
 
@@ -177,6 +177,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <TokenProvider>
       <RouterProvider router={router} />
     </TokenProvider>
-    <ReactQueryDevtools initialIsOpen={false} />
+    {/* <ReactQueryDevtools initialIsOpen={false} /> */}
   </QueryClientProvider>
 );

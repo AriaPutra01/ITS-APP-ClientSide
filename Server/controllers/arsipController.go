@@ -51,7 +51,7 @@ func UploadHandlerArsip(c *gin.Context) {
 		os.MkdirAll(dir, 0755)
 	}
 
-	filePath := filepath.Join(dir, file.Filename)
+	filePath := filepath.ToSlash(filepath.Join(baseDir, id, file.Filename))
 	if err := c.SaveUploadedFile(file, filePath); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan file"})
 		return
@@ -77,8 +77,10 @@ func UploadHandlerArsip(c *gin.Context) {
 func GetFilesByIDArsip(c *gin.Context) {
 	id := c.Param("id")
 
-	var files []models.File
-	result := initializers.DB.Where("user_id = ?", id).Find(&files)
+	filePathPattern := fmt.Sprintf("C:/UploadedFile/arsip/%s/%%", id)
+
+var files []models.File
+	result := initializers.DB.Where("file_path LIKE ?", filePathPattern).Find(&files)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data file"})
 		return
@@ -105,7 +107,7 @@ func DeleteFileHandlerArsip(c *gin.Context) {
 	log.Printf("Received ID: %s and Filename: %s", id, filename) // Tambahkan log ini
 
 	baseDir := "C:/UploadedFile/arsip"
-	fullPath := filepath.Join(baseDir, id, filename)
+	fullPath := filepath.ToSlash(filepath.Join(baseDir, id, filename))
 
 	log.Printf("Attempting to delete file at path: %s", fullPath)
 
@@ -132,7 +134,7 @@ func DownloadFileHandlerArsip(c *gin.Context) {
 	id := c.Param("id")
 	filename := c.Param("filename")
 	baseDir := "C:/UploadedFile/arsip"
-	fullPath := filepath.Join(baseDir, id, filename)
+	fullPath := filepath.ToSlash(filepath.Join(baseDir, id, filename))
 
 	log.Printf("Full path for download: %s", fullPath)
 
@@ -159,7 +161,7 @@ func DownloadFileHandlerArsip(c *gin.Context) {
 func ArsipIndex(c *gin.Context) {
 	var arsip []models.Arsip
 	initializers.DB.Find(&arsip)
-	c.JSON(200,  arsip)
+	c.JSON(200, arsip)
 }
 
 // Fungsi untuk membuat arsip baru
@@ -288,7 +290,6 @@ func CreateExcelArsip(c *gin.Context) {
 
 	// File does not exist, create a new file
 	f := excelize.NewFile()
-
 
 	// Buat sheet dan atur header untuk "ARSIP"
 	sheetName := "ARSIP"

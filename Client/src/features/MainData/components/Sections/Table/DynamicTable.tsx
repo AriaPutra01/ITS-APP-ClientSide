@@ -31,7 +31,7 @@ interface TableProps {
 export default function Table({
   title,
   columns,
-  data,
+  data = [],
   CustomHeader,
   SelectedRows,
   className,
@@ -74,7 +74,7 @@ export default function Table({
             {CustomHeader?.left}
             <div className="flex gap-2">
               <Button
-                className="w-max"
+                className="w-max rounded"
                 variant={SelectedRows.variant}
                 onClick={handleTriggerSelectedRows}
                 disabled={selectedRows.length === 0}>

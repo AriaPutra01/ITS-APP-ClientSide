@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import App from "@/components/Layouts/App";
 import Table from "@/features/MainData/components/Sections/Table/DynamicTable";
-import FilterTableCell from "@/Utils/FilterTableCell";
+import FilterTableCell from "@/lib/FilterTableCell";
 import { TableLoading } from "@/features/MainData/components/Elements/Loading/TableLoading";
 import { useFilter } from "@/features/MainData/hooks/useFilter";
 import {
@@ -11,14 +11,16 @@ import {
   usePostData,
 } from "@/features/MainData/hooks/useAPI";
 import { useFormStore } from "@/features/MainData/store/FormStore";
-import { UploadFields } from "@/config/config/Upload";
+import { UploadFields } from "@/config/FormConfig/upload";
 import { useSelectionDeletion } from "@/features/MainData/hooks/useSelectionDeletion";
 import ShowDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/ShowDialog";
 import AddForm from "@/features/MainData/components/Sections/Table/Actions/Columns/AddForm";
 import DeleteDialog from "@/features/MainData/components/Sections/Table/Actions/Columns/DeleteDialog";
 import EditForm from "@/features/MainData/components/Sections/Table/Actions/Columns/EditForm";
 import UploadForm from "@/features/MainData/components/Sections/Table/Actions/Columns/UploadForm";
-import { useToken } from "@/features/MainData/hooks/useToken";
+import { useToken } from "@/hooks/useToken";
+import { Excel } from "@/Utils/Excel";
+import { useFilterCheckbox } from "@/features/MainData/hooks/useFilterCheckbox";
 
 // Arsip
 import { SuratKeluarFields } from "@/features/MainData/config/formFields/DataInformasi/SuratKeluar";
@@ -34,13 +36,13 @@ export default function SuratKeluar() {
   const { data: SuratKeluars, isLoading } = useFetchData({
     queryKey: ["suratKeluars"],
     axios: {
-      url: "/SuratKeluar",  
+      url: "/SuratKeluar",
     },
   });
   const PostSuratKeluar = usePostData({
     axios: {
       url: "/SuratKeluar",
-    }, 
+    },
   });
   const DeleteSuratKeluar = useDeleteData({
     axios: {
@@ -131,9 +133,9 @@ export default function SuratKeluar() {
               }}
               url={{
                 getUrl: "/filesSuratKeluar",
-                postUrl: "/uploadFilesSuratKeluar",
-                downloadUrl: "/downloadFilesSuratKeluar",
-                deleteUrl: "/deleteFilesSuratKeluar",
+                postUrl: "/uploadFileSuratKeluar",
+                downloadUrl: "/downloadSuratKeluar",
+                deleteUrl: "/deleteSuratKeluar",
               }}
             />
           </div>
@@ -171,6 +173,13 @@ export default function SuratKeluar() {
           },
         }}
       />
+      <Excel
+      link={{
+        exportThis: "/exportSuratKeluar",
+          import: "/uploadSuratKeluar",
+          exportAll: true,
+      }}
+      />
     </div>
   );
 
@@ -179,6 +188,7 @@ export default function SuratKeluar() {
     data: SuratKeluars,
     filteredItem: "no_surat",
   });
+
 
   return (
     <App services="Arsip">

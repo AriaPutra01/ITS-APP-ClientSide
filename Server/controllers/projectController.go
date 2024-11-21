@@ -60,7 +60,7 @@ func UploadHandlerProject(c *gin.Context) {
 		os.MkdirAll(dir, 0755)
 	}
 
-	filePath := filepath.Join(dir, file.Filename)
+	filePath := filepath.ToSlash(filepath.Join(baseDir, id, file.Filename))
 	if err := c.SaveUploadedFile(file, filePath); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan file"})
 		return
@@ -86,8 +86,10 @@ func UploadHandlerProject(c *gin.Context) {
 func GetFilesByIDProject(c *gin.Context) {
 	id := c.Param("id")
 
+	filePathPattern := fmt.Sprintf("C:/UploadedFile/project/%s/%%", id)
+
 	var files []models.File
-	result := initializers.DB.Where("user_id = ?", id).Find(&files)
+	result := initializers.DB.Where("file_path LIKE ?", filePathPattern).Find(&files)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data file"})
 		return
@@ -114,7 +116,7 @@ func DeleteFileHandlerProject(c *gin.Context) {
 	log.Printf("Received ID: %s and Filename: %s", id, filename) // Tambahkan log ini
 
 	baseDir := "C:/UploadedFile/project"
-	fullPath := filepath.Join(baseDir, id, filename)
+	fullPath := filepath.ToSlash(filepath.Join(baseDir, id, filename))
 
 	log.Printf("Attempting to delete file at path: %s", fullPath)
 
@@ -141,7 +143,7 @@ func DownloadFileHandlerProject(c *gin.Context) {
 	id := c.Param("id")
 	filename := c.Param("filename")
 	baseDir := "C:/UploadedFile/project"
-	fullPath := filepath.Join(baseDir, id, filename)
+	fullPath := filepath.ToSlash(filepath.Join(baseDir, id, filename))
 
 	log.Printf("Full path for download: %s", fullPath)
 
@@ -296,7 +298,10 @@ func ProjectShow(c *gin.Context) {
 func ProjectUpdate(c *gin.Context) {
 	var requestBody ProjectRequest
 
+	log.Printf("Received request: %+v", requestBody)
+
 	if err := c.BindJSON(&requestBody); err != nil {
+		log.Printf("Error binding JSON: %v", err) // Log detail error
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
@@ -304,9 +309,12 @@ func ProjectUpdate(c *gin.Context) {
 	id := c.Params.ByName("id")
 	var project models.Project
 	if err := initializers.DB.First(&project, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
+		log.Printf("Project not found with ID %s: %v", id, err) // Log detail error
+		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"  + err.Error()})
 		return
 	}
+
+	log.Printf("Updating project: %+v", project)
 
 	// Update KodeProject if Group or other relevant fields are changed
 	currentYear := time.Now().Format("2006")
@@ -347,7 +355,7 @@ func ProjectUpdate(c *gin.Context) {
 	project.KodeProject = &newKodeProject
 
 	if requestBody.Bulan != nil && *requestBody.Bulan != "" {
-		parsedBulan, err := time.Parse("2006-01-02", *requestBody.Bulan)
+		parsedBulan, err := time.Parse("2006-01", *requestBody.Bulan)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
 			return
@@ -399,6 +407,7 @@ func ProjectUpdate(c *gin.Context) {
 
 	// Save changes
 	if err := initializers.DB.Save(&project).Error; err != nil {
+		log.Printf("Error updating project: %v", err) // Log detail error
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update project"})
 		return
 	}
