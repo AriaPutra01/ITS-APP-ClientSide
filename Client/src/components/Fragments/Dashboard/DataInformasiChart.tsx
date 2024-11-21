@@ -31,17 +31,17 @@ export const DataInformasiChart = () => {
     () => [
       {
         label: "Surat Masuk",
-        color: "red",
+        color: "blue",
         count: GetSuratMasuk,
       },
       {
         label: "Surat Keluar",
-        color: "red",
+        color: "blue",
         count: GetSuratKeluar,
       },
       {
         label: "Arsip",
-        color: "red",
+        color: "blue",
         count: GetArsip,
       },
     ],
@@ -58,7 +58,7 @@ export const DataInformasiChart = () => {
     <Card
       className="grid grid-cols-3 gap-2"
       title="Data & Informasi"
-      color="red">
+      color="blue">
       {DataInformasi.map((item, index) => (
         <Card.item key={index} color={item.color} label={item.label}>
           {item.count as any}

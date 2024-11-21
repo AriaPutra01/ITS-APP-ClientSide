@@ -65,7 +65,7 @@ export const CalendarForm = ({ onSubmit }: FormConfig) => {
                     control={form.control}
                     name={col.name as string}
                     render={({ field }) => (
-                      <FormItem className="space-y-3">
+                      <FormItem className="space-y-3 mx-2 my-1">
                         <FormLabel>{col.label}</FormLabel>
                         <FormControl>
                           <RadioGroup
@@ -106,7 +106,7 @@ export const CalendarForm = ({ onSubmit }: FormConfig) => {
                     control={form.control}
                     name={col.name as string}
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="mx-2 my-1">
                         <FormLabel>{col.label}</FormLabel>
                         <FormControl>
                           <Input type={col.type} {...field} />
@@ -119,7 +119,10 @@ export const CalendarForm = ({ onSubmit }: FormConfig) => {
             }
           })}
         </div>
-        <Button type="submit" className="w-full col-span-2">
+        <Button
+          disabled={form.formState.isSubmitting}
+          type="submit"
+          className="w-full col-span-2 roundedti">
           Simpan
         </Button>
       </form>

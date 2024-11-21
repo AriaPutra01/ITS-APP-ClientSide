@@ -23,12 +23,12 @@ export const WeeklyChart = () => {
     () => [
       {
         label: "Timeline Project",
-        color: "pink",
+        color: "green",
         count: GetTimelineProject,
       },
       {
         label: "Schedule",
-        color: "pink",
+        color: "green",
         count: GetSchedule,
       },
     ],
@@ -45,7 +45,7 @@ export const WeeklyChart = () => {
     <Card
       className="grid grid-cols-2 gap-2"
       title="Weekly Timeline"
-      color="pink">
+      color="green">
       {Weekly.map((item, index) => (
         <Card.item key={index} color={item.color} label={item.label}>
           {item.count as any}

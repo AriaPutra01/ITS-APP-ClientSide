@@ -36,9 +36,23 @@ export const CalendarFields = [
           "#e91e63",
         ],
         {
+          message: "Pilih warna yang tertera.",
           required_error: "Pilih warna yang tertera.",
         }
       )
       .nullable(),
+  },
+];
+
+// RESOURCE
+export const ResourceFields = [
+  {
+    name: "name",
+    label: "Nama Resource",
+    type: "string",
+    validation: z
+      .string()
+      .min(4, "minimal 4 karakter")
+      .max(20, "maksimal 20 karakter"),
   },
 ];

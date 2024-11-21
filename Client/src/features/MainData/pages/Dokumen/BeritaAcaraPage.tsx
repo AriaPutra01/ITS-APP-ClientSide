@@ -192,7 +192,7 @@ export default function BeritaAcara() {
           <Table
             title="Berita Acara"
             columns={columns}
-            data={filteredData || []}
+            data={filteredData}
             CustomHeader={{
               left: renderSubHeader,
               right: renderFilter,

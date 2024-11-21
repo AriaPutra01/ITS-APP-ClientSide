@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { id } from "date-fns/locale/id";
 import { format } from "date-fns";
 import clsx from "clsx";
+import { CalendarLoading } from "../../components/Elements/Loading/CalendarLoading";
 
 export default function BookingRapat() {
   const {
     userDetails: { role },
   } = useToken();
 
-  const { data } = useFetchData({
+  const { data, isLoading } = useFetchData({
     queryKey: ["bookingRapats"],
     axios: {
       url: "/booking-rapat",
@@ -80,12 +81,16 @@ export default function BookingRapat() {
 
   return (
     <App services="Booking Ruang Rapat">
-      <Calendar
-        initialView="dayGridMonth"
-        data={data as Events[]}
-        mutation={{ post: Post, del: Del, invalidateKey: ["bookingRapats"] }}
-        subLeftBar={subLeftBar}
-      />
+      {isLoading ? (
+        <CalendarLoading />
+      ) : (
+        <Calendar
+          initialView="dayGridMonth"
+          data={data as Events[]}
+          mutation={{ post: Post, del: Del, invalidateKey: ["bookingRapats"] }}
+          subLeftBar={subLeftBar}
+        />
+      )}
     </App>
   );
 }

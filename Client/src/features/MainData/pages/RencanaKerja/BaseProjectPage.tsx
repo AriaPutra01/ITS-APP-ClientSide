@@ -10,7 +10,7 @@ import App from "@/components/Layouts/App";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
-export const BaseProjectPage = () => {
+export default function BaseProject() {
   return (
     <App services="Base Project">
       <div className="flex flex-col gap-[1rem] p-[2rem]">
@@ -107,4 +107,4 @@ export const BaseProjectPage = () => {
       </div>
     </App>
   );
-};
+}

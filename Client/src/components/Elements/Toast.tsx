@@ -3,14 +3,15 @@ import Swal from "sweetalert2";
 export const TimerToast = (
   icon: "error" | "success" | "info" | "warning" | "question",
   title: string,
-  text?: string
+  text?: string,
+  timer: number = 1500
 ) =>
   Swal.fire({
     icon: icon,
     title: title,
     text: text,
     showConfirmButton: false,
-    timer: 1500,
+    timer,
   });
 
 export const Toast = (

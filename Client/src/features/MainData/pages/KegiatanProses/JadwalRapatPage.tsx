@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { id } from "date-fns/locale/id";
 import { format } from "date-fns";
 import clsx from "clsx";
+import { CalendarLoading } from "../../components/Elements/Loading/CalendarLoading";
 
 export default function JadwalRapat() {
   const {
     userDetails: { role },
   } = useToken();
 
-  const { data } = useFetchData({
+  const { data, isLoading } = useFetchData({
     queryKey: ["jadwalRapats"],
     axios: {
       url: "/jadwal-rapat",
@@ -78,12 +79,16 @@ export default function JadwalRapat() {
 
   return (
     <App services="Jadwal Rapat">
-      <Calendar
-        initialView="timeGridWeek"
-        data={data as Events[]}
-        mutation={{ post: Post, del: Del, invalidateKey: ["jadwalRapats"] }}
-        subLeftBar={subLeftBar}
-      />
+      {isLoading ? (
+        <CalendarLoading />
+      ) : (
+        <Calendar
+          initialView="timeGridWeek"
+          data={data as Events[]}
+          mutation={{ post: Post, del: Del, invalidateKey: ["jadwalRapats"] }}
+          subLeftBar={subLeftBar}
+        />
+      )}
     </App>
   );
 }

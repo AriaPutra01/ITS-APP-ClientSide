@@ -1,17 +1,14 @@
-import { FormatDate } from "./FormatDate";
+import dayjs from "@/lib/dayjs";
 
 const FilterTableCell = (field: any, value: any) => {
-  if (field.render) {
-    return field.render(value);
-  }
   switch (field.type) {
     case "number":
       return `Rp. ${new Intl.NumberFormat("id-ID").format(value)}`;
     case "date":
       if (field.name === "bulan") {
-        return value ? FormatDate(value, "bulanTahun") : "";
+        return value ? dayjs(value).format("dddd, DD MMM YYYY") : "";
       }
-      return value ? FormatDate(value) : "";
+      return value ? dayjs(value).format("dddd, DD MMM YYYY") : "";
     default:
       return value;
   }

@@ -46,7 +46,7 @@ export function Excel({ link }: ExcelProps) {
 
   const Import = usePostData({
     axios: {
-      url: `/${link?.import}`,
+      url: `${link?.import}`,
     },
   });
 
@@ -86,7 +86,9 @@ export function Excel({ link }: ExcelProps) {
     <div className="flex gap-1.5 items-center size-full justify-center">
       <DropdownMenu open={isOpen} onOpenChange={(open) => setOpen(open)}>
         <DropdownMenuTrigger className="size-full" asChild>
-          <Button className="bg-green-600 hover:bg-green-700">Excel</Button>
+          <Button className="bg-green-600 hover:bg-green-700 rounded">
+            Excel
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="flex flex-col gap-4 p-4">
           {/* EXPORT */}
@@ -97,15 +99,19 @@ export function Excel({ link }: ExcelProps) {
                 "grid grid-cols-1 gap-2 p-2 shadow"
               )}>
               <Label className="col-span-2">Export</Label>
-              <DropdownMenuItem className="col-span-1 bg-green-600 hover:bg-green-700 text-white">
+              <DropdownMenuItem
+                asChild
+                className="col-span-1 bg-green-600 hover:bg-green-700 text-white rounded">
                 <Link
                   className="text-center w-full"
-                  to={`http://localhost:8080/${link?.exportThis}`}>
+                  to={`http://localhost:8080${link?.exportThis}`}>
                   Sheet ini saja
                 </Link>
               </DropdownMenuItem>
               {link?.exportAll && (
-                <DropdownMenuItem className="col-span-1 bg-green-600 hover:bg-green-700 text-white">
+                <DropdownMenuItem
+                  asChild
+                  className="col-span-1 bg-green-600 hover:bg-green-700 text-white rounded">
                   <span className="text-center w-full" onClick={exportAll}>
                     Semua sheet
                   </span>

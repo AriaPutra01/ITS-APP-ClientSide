@@ -22,15 +22,15 @@ import Surat from "@/features/MainData/pages/Dokumen/SuratPage";
 import Perdin from "@/features/MainData/pages/Dokumen/PerjalananDinasPage";
 // RENCANA KERJA
 import Project from "@/features/MainData/pages/RencanaKerja/ProjectPage";
-import { BaseProjectPage } from "@/features/MainData/pages/RencanaKerja/BaseProjectPage";
+import BaseProject from "@/features/MainData/pages/RencanaKerja/BaseProjectPage";
 // KEGIATAN PROSES
-import TimelineDesktop from "@/features/MainData/pages/KegiatanProses/TimelineDesktopPage";
+import TimelineDesktop from "@/features/MainData/pages/KegiatanProses/TimelineDesktop";
 import Meeting from "@/features/MainData/pages/KegiatanProses/MeetingPage";
 import BookingRapat from "@/features/MainData/pages/KegiatanProses/BookingRapatPage";
 import JadwalRapat from "@/features/MainData/pages/KegiatanProses/JadwalRapatPage";
 import JadwalCuti from "@/features/MainData/pages/KegiatanProses/JadwalCutiPage";
 // WEEKLY MEETING
-import { TimelineProjectPage } from "@/features/MainData/pages/KegiatanProses/TimelineProjectPage";
+import TimelineProject from "@/features/MainData/pages/KegiatanProses/TimelineProject";
 import MeetingShcedule from "@/features/MainData/pages/KegiatanProses/MeetingListPage";
 // DATA INFORMASI
 import SuratMasuk from "@/features/MainData/pages/DataInformasi/SuratMasukPage";
@@ -42,7 +42,7 @@ import Request from "@/features/MainData/pages/Request/requestPage";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      select: (data: any) => data?.data || [],
+      select: (data: any) => data?.data,
       refetchIntervalInBackground: true,
       staleTime: Menit(10),
     },
@@ -110,11 +110,11 @@ const router = createBrowserRouter([
   {
     //* DONE
     path: "/base-project",
-    element: <BaseProjectPage />,
+    element: <BaseProject />,
   },
   // KEGIATAN PROSES
   {
-    //? PROGRESS
+    //* DONE
     path: "/timeline-desktop",
     element: <TimelineDesktop />,
   },
@@ -140,9 +140,9 @@ const router = createBrowserRouter([
   },
   // WEEKLY MEETING
   {
-    //TODO
+    //* DONE
     path: "/timeline-project",
-    element: <TimelineProjectPage />,
+    element: <TimelineProject />,
   },
   {
     //* DONE
@@ -166,7 +166,7 @@ const router = createBrowserRouter([
     element: <Arsip />,
   },
   {
-    //TODO
+    //* DONE
     path: "/request",
     element: <Request />,
   },
@@ -177,6 +177,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <TokenProvider>
       <RouterProvider router={router} />
     </TokenProvider>
-    <ReactQueryDevtools initialIsOpen={false} />
+    {/* <ReactQueryDevtools initialIsOpen={false} /> */}
   </QueryClientProvider>
 );

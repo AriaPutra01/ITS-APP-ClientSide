@@ -4,10 +4,13 @@ import { useToken } from "@/hooks/useToken";
 
 export default function Welcome() {
   const navigate = useNavigate();
+
   const { token } = useToken();
+
   if (token) {
     navigate("/dashboard");
   }
+
   return (
     <section className="h-screen flex justify-center items-center">
       <div className="text-center">

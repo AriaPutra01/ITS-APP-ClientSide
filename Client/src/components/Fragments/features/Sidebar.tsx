@@ -1,15 +1,16 @@
-import { ChevronLast, ChevronFirst } from "lucide-react";
-import { useContext, createContext, useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom"; // Tambahkan useLocation
 import {
-  MdKeyboardArrowUp,
-  MdKeyboardArrowDown,
-  MdKeyboardArrowRight,
-} from "react-icons/md";
+  ChevronLast,
+  ChevronFirst,
+  ArrowRightIcon,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
+import { useContext, createContext, useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 type SidebarContextType = {
-  expanded: boolean;
-  open: () => void;
+  isOpen: boolean;
+  toggle: () => void;
 };
 
 const SidebarContext = createContext({} as SidebarContextType);
@@ -21,8 +22,9 @@ export default function Sidebar({
   username,
   email,
 }: any) {
-  const [expanded, setExpanded] = useState(false);
-  const open = () => setExpanded(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const toggle = () => setIsOpen(true);
+
   return (
     <aside className="h-full flex flex-col bg-white border-r shadow-sm transition-all ">
       <div className="py-3 px-4 flex justify-between items-center">
@@ -30,24 +32,23 @@ export default function Sidebar({
           <img
             src={img}
             className={`overflow-hidden transition-all ${
-              expanded ? "w-8" : "w-0"
+              isOpen ? "w-8" : "w-0"
             }`}
-            alt=""
           />
-          {expanded && (
+          {isOpen && (
             <span className="text-gray-600 font-bold text-xl">{title}</span>
           )}
         </div>
         <button
           onClick={() => {
-            setExpanded((curr) => !curr);
+            setIsOpen((curr) => !curr);
           }}
-          className="p-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 transition-colors">
-          {expanded ? <ChevronFirst /> : <ChevronLast />}
+          className="size-[3rem] flex justify-center items-center rounded bg-sky-50 hover:bg-sky-100 transition-colors">
+          {isOpen ? <ChevronFirst /> : <ChevronLast />}
         </button>
       </div>
 
-      <SidebarContext.Provider value={{ expanded, open }}>
+      <SidebarContext.Provider value={{ isOpen, toggle }}>
         <ul className="flex-1 px-3 overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
           {children}
         </ul>
@@ -55,14 +56,14 @@ export default function Sidebar({
 
       <div
         className={`border-t-2 flex justify-${
-          expanded ? "start" : "center"
+          isOpen ? "start" : "center"
         } items-center p-3`}>
         <img src={img} alt="" className="w-8 transition-all rounded-md" />
         <div
           className={`
               flex justify-between items-center
               overflow-hidden transition-all
-              ${expanded ? "w-full" : "w-0"}
+              ${isOpen ? "w-full" : "w-0"}
           `}>
           <div className="leading-4 ps-[1rem]">
             <h4 className="font-semibold">{username}</h4>
@@ -77,17 +78,17 @@ export default function Sidebar({
 export function SidebarItem({
   onClick,
   href,
-  icon = <MdKeyboardArrowRight />,
+  icon = <ArrowRightIcon />,
   text,
   alert,
 }: any) {
-  const { expanded, open } = useContext(SidebarContext);
+  const { isOpen, toggle } = useContext(SidebarContext);
   const location = useLocation();
   const active = location.pathname === href;
   return (
     <li>
       <Link
-        onClick={onClick || open}
+        onClick={onClick || toggle}
         className={`
         relative flex items-center py-2 px-3 my-1
         font-medium rounded-md cursor-pointer
@@ -102,7 +103,7 @@ export function SidebarItem({
         {icon}
         <span
           className={`overflow-hidden transition-all ${
-            expanded ? "ml-[1rem]" : "w-0"
+            isOpen ? "ml-[1rem]" : "w-0"
           }`}>
           {text}
         </span>
@@ -110,7 +111,7 @@ export function SidebarItem({
         {alert && (
           <div
             className={`absolute right-2 w-2 h-2 rounded bg-sky-400 ${
-              expanded ? "" : "top-2"
+              isOpen ? "" : "top-2"
             }`}
           />
         )}
@@ -120,7 +121,7 @@ export function SidebarItem({
 }
 
 export function SidebarCollapse({ children, icon, text, alert }: any) {
-  const { expanded, open } = useContext(SidebarContext);
+  const { isOpen, toggle } = useContext(SidebarContext);
   const [drop, setDrop] = useState(false);
   const location = useLocation(); // Dapatkan path saat ini
 
@@ -139,10 +140,10 @@ export function SidebarCollapse({ children, icon, text, alert }: any) {
     <>
       <li
         onClick={() => {
-          if (expanded) {
+          if (isOpen) {
             setDrop((curr) => !curr);
           }
-          open();
+          toggle();
         }}
         className={`relative flex justify-between items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors group ${
           isChildActive
@@ -153,24 +154,24 @@ export function SidebarCollapse({ children, icon, text, alert }: any) {
           {icon}
           <span
             className={`overflow-hidden transition-all ${
-              expanded ? "w-44 ml-4" : "w-0"
+              isOpen ? "w-44 ml-4" : "w-0"
             }`}>
             {text}
           </span>
         </div>
 
-        {expanded && (drop ? <MdKeyboardArrowUp /> : <MdKeyboardArrowDown />)}
+        {isOpen && (drop ? <ArrowUp /> : <ArrowDown />)}
 
         {alert && (
           <div
             className={`absolute right-2 w-2 h-2 rounded bg-sky-400 ${
-              expanded ? "" : "top-2"
+              isOpen ? "" : "top-2"
             }`}
           />
         )}
       </li>
 
-      {expanded && (
+      {isOpen && (
         <ul
           className={`transition-max-height ease-in-out overflow-hidden ${
             drop ? "max-h-screen opacity-100" : "max-h-0 opacity-0"

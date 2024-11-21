@@ -35,7 +35,7 @@ export const Calendar = ({
   subLeftBar,
 }: CalendarProps) => {
   const {
-    modals: { addModal },
+    modals: { calendarModal },
     openModal,
     closeModal,
   } = useModalStore();
@@ -43,9 +43,16 @@ export const Calendar = ({
   // INITIAL DATA
   const { initialData, setInitialData, setFields } = useFormStore();
 
+  // CLOSEMODAL ACTION
+  const handleCloseModal = () => {
+    closeModal("calendarModal");
+    setFields([]);
+    setInitialData({});
+  };
+
   // Handle date click to add new event
   const handleDateClick = (selected: any) => {
-    openModal("addModal");
+    openModal("calendarModal");
     setFields(CalendarFields as any);
     setInitialData({
       title: "",
@@ -90,7 +97,7 @@ export const Calendar = ({
             );
           },
         })
-        .then(() => closeModal("addModal"))
+        .then(() => handleCloseModal())
         .then(() =>
           queryClient.invalidateQueries({
             queryKey: mutation?.invalidateKey,
@@ -141,11 +148,11 @@ export const Calendar = ({
         "grid-cols-1fr": !subLeftBar,
       })}>
       {subLeftBar && (
-        <div className="bg-gray-50 rounded h-[85vh] max-h-[85vh] w-[200px] overflow-auto p-4">
+        <div className="bg-gray-50 rounded h-[80vh] max-h-[80vh] w-[17vw] p-4">
           {subLeftBar}
         </div>
       )}
-      <div className="mx-3 overflow-auto h-[85vh] max-h-[85vh]">
+      <div className="mx-3 overflow-auto h-[80vh] max-h-[80vh]">
         <FullCalendar
           height={"100%"}
           locale={id}
@@ -190,12 +197,12 @@ export const Calendar = ({
       </div>
 
       <Modal
-        isOpen={addModal}
+        isOpen={calendarModal}
         trigger={{
           onClose: (
             <CloseButton
               onClick={() => {
-                closeModal("addModal");
+                closeModal("calendarModal");
                 setFields([]);
                 setInitialData({});
               }}

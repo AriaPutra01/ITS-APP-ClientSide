@@ -1,25 +1,29 @@
-import { useState, useEffect, useRef } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import Swal from "sweetalert2";
+import { useState, useCallback, useEffect } from "react";
 import { Badge } from "../../ui/badge";
-import { format } from "date-fns";
-import { id } from "date-fns/locale/id";
+import { useDeleteData, useFetchData } from "@/features/MainData/hooks/useAPI";
+import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CloseButton } from "@/features/MainData/components/Sections/Table/Actions/Buttons";
+import Modal from "@/components/Elements/Modal";
+import { useModalStore } from "@/features/MainData/store/ModalStore";
+import { Input } from "@/components/ui/input";
 import {
-  deleteNotification,
-  GetNotification,
-} from "../../../../API/KegiatanProses/Notification/Notification";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ConfirmToast, TimerToast } from "@/components/Elements/Toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { Detik, Menit } from "@/lib/time";
+import checkNewNotifications from "@/hooks/useCheckNotif";
+import { Events } from "@/config/types";
+import dayjs from "@/lib/dayjs";
+import { Skeleton } from "@/components/ui/skeleton";
+import NotifLoading from "@/features/MainData/components/Elements/Loading/NotifLoading";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
-//TODO: Harus diubah
-
-// Define notification event type
 interface NotificationEvent {
   id: string;
   category: string;
@@ -34,22 +38,17 @@ type NotificationCategories =
   | "TimelineWallpaperDesktop"
   | "BookingRapat";
 
-// type NotificationState = Record<NotificationCategories, NotificationEvent[]>;
-type NotificationState = {
-  [key: string]: NotificationEvent[];
-};
-
 type FilterState = Record<NotificationCategories, boolean>;
 
 export default function Notification() {
-  const [notification, setNotification] = useState<NotificationState>({
-    JadwalCuti: [],
-    JadwalRapat: [],
-    TimelineProject: [],
-    TimelineWallpaperDesktop: [],
-    BookingRapat: [],
-  });
+  // MODAL
+  const {
+    modals: { notificationModal },
+    closeModal,
+    openModal,
+  } = useModalStore();
 
+  // FILTER KATEGORI
   const [filter, setFilter] = useState<FilterState>({
     JadwalCuti: false,
     JadwalRapat: true,
@@ -58,302 +57,250 @@ export default function Notification() {
     TimelineProject: true,
   });
 
+  // HANDLE FILTER KATEGORI
+  const handleCheckboxChange = useCallback(
+    (category: NotificationCategories) => {
+      setFilter((prevFilter) => ({
+        ...prevFilter,
+        [category]: !prevFilter[category],
+      }));
+    },
+    [filter]
+  );
+
+  // FETCH NOTIF
+  const { data: notif, isLoading } = useFetchData({
+    queryKey: ["notifications"],
+    axios: {
+      url: "/notifications",
+    },
+    staleTime: 0,
+    refetchInterval: Menit(1),
+    select: ({ data }: any) =>
+      data.filter(
+        (notif: NotificationEvent) =>
+          filter[notif.category as NotificationCategories]
+      ),
+  });
+
+  // CEK NOTIF BARU
+  const newNotif = checkNewNotifications(notif as Events[]);
+  useEffect(() => {
+    if (newNotif?.length > 0) {
+      newNotif.forEach((event) => {
+        TimerToast(
+          "info",
+          "Pengingat Acara",
+          `Acara "${event.title}" dimulai pada ${dayjs(event.start).format(
+            "dddd, DD MMM YYYY [pukul] HH:mm"
+          )}`,
+          Detik(5)
+        );
+      });
+    }
+  }, [notif]);
+
+  // DEL NOTIF
+  const DelNotif = useDeleteData({
+    axios: {
+      url: "/notifications",
+    },
+  });
+
+  // NOTIF YANG DIPILIH
   const [selectedNotifications, setSelectedNotifications] = useState<string[]>(
     []
   );
 
-  // State untuk menyimpan waktu event
-  const [eventTime, setEventTime] = useState<Date | null>(null);
-
-  const eventTimeRef = useRef<Date | null>(null);
-
-  useEffect(() => {
-    if (eventTime) {
-      eventTimeRef.current = eventTime;
+  // HANDLE SELECT SEMUA NOTIF
+  const handleSelectAll = useCallback(() => {
+    if (
+      selectedNotifications.length === (notif as NotificationEvent[]).length
+    ) {
+      setSelectedNotifications([]);
+    } else {
+      const allIds = (notif as NotificationEvent[]).map((event) => event.id);
+      setSelectedNotifications(allIds);
     }
-  }, [eventTime]);
+  }, [selectedNotifications, notif]);
 
-  useEffect(() => {
-    const checkEventTime = () => {
-      if (!eventTimeRef.current) return; // Add null check here
-
-      const now = new Date();
-      const oneHourBeforeEvent = new Date(
-        eventTimeRef.current.getTime() - 60 * 60 * 1000
-      );
-
-      if (now >= oneHourBeforeEvent && now <= eventTimeRef.current) {
-        Swal.fire({
-          title: "Pengingat Event",
-          text: "Event Anda akan dimulai dalam satu jam!",
-          icon: "info",
-          confirmButtonText: "Baik",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            // Hapus notifikasi setelah konfirmasi
-            setNotification((prevData) => {
-              const updatedNotifications: any = { ...prevData };
-              Object.keys(updatedNotifications).forEach((category) => {
-                updatedNotifications[category] = updatedNotifications[
-                  category
-                ].filter((event: any) => event.start !== eventTimeRef.current);
-              });
-              return updatedNotifications;
-            });
-          }
-        });
-      }
-    };
-
-    const timer = setInterval(() => {
-      checkEventTime();
-    }, 60000); // Periksa setiap menit
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, []); // useEffect ini tidak memiliki dependensi dan hanya di-set sekali
-
-  const handleFilterChange = (category: NotificationCategories) => {
-    setFilter((prevFilter) => ({
-      ...prevFilter,
-      [category]: !prevFilter[category],
-    }));
-  };
-
-  // Fetch events dan set waktu event
-  useEffect(() => {
-    const fetchNotifications = () => {
-      GetNotification((data: any) => {
-        const groupedNotifications: NotificationState = {
-          JadwalCuti: [],
-          JadwalRapat: [],
-          BookingRapat: [],
-          TimelineWallpaperDesktop: [],
-          TimelineProject: [],
-        };
-        data.forEach((event: NotificationEvent) => {
-          if (groupedNotifications[event.category]) {
-            groupedNotifications[event.category].push(event);
-          }
-          // Misalnya, set waktu event untuk event pertama
-          if (event.category === "JadwalRapat") {
-            setEventTime(new Date(event.start)); // Asumsi 'start' adalah waktu mulai event
-          }
-        });
-        setNotification(groupedNotifications);
-      });
-    };
-
-    fetchNotifications();
-    const intervalId = setInterval(fetchNotifications, 60000); // Refresh setiap 1 menit
-
-    return () => clearInterval(intervalId);
-  }, []);
-
-  // Fungsi untuk menghapus notifikasi tunggal
-  const handleDelete = async (id: string) => {
-    Swal.fire({
-      title: "Apakah Anda yakin?",
-      text: "Anda akan menghapus Notif ini!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, saya yakin",
-      cancelButtonText: "Batal",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await deleteNotification(id);
-          setNotification((prevData) => {
-            const updatedNotifications = { ...prevData };
-            Object.keys(updatedNotifications).forEach((category) => {
-              updatedNotifications[category as NotificationCategories] =
-                updatedNotifications[category as NotificationCategories].filter(
-                  (event) => event.id !== id
-                );
-            });
-            return updatedNotifications;
-          });
-        } catch (error) {
-          Swal.fire({
-            icon: "error",
-            title: `Error saat hapus notif!, ${error}`,
-            showConfirmButton: false,
-            timer: 1500,
-          });
-        }
-      }
-    });
-  };
-
-  // Fungsi untuk menghandle perubahan pada checkbox
+  // HANDLE SELECT NOTIF
   const handleSelectNotification = (id: string) => {
     setSelectedNotifications((prevSelected) =>
       prevSelected.includes(id)
-        ? prevSelected.filter((selectedId) => selectedId !== id)
+        ? prevSelected.filter((notifId) => notifId !== id)
         : [...prevSelected, id]
     );
   };
 
-  // Fungsi untuk menghandle select all
-  const handleSelectAll = (category: NotificationCategories) => {
-    const allIds = notification[category].map((event) => event.id);
-    setSelectedNotifications((prevSelected) =>
-      allIds.every((id) => prevSelected.includes(id))
-        ? prevSelected.filter((id) => !allIds.includes(id))
-        : [
-            ...prevSelected,
-            ...allIds.filter((id) => !prevSelected.includes(id)),
-          ]
-    );
-  };
+  // UNTUK INVALIDATE KEY
+  const queryClient = useQueryClient();
 
-  // Fungsi untuk menghapus notifikasi yang dipilih
-  const handleDeleteSelected = async () => {
-    try {
-      for (const id of selectedNotifications) {
-        await deleteNotification(id);
+  // HANDLE DELETE NOTIF ID
+  const handleDeleteNotif = useCallback(
+    async (id: any) =>
+      DelNotif.mutateAsync(id, {
+        onError: ({ response }: any) => {
+          TimerToast(
+            "error",
+            "Notifikasi gagal dihapus.",
+            response.data.message
+          );
+        },
+      }),
+    [DelNotif]
+  );
+
+  // HANDLE DATA YANG DIPILIH
+  const handleDeleteSelected = useCallback(() => {
+    closeModal("notificationModal");
+    ConfirmToast(
+      "question",
+      "Apakah Anda yakin?",
+      "Notifikasi yang dipilih akan dihapus!"
+    ).then(async (result) => {
+      if (result.isConfirmed) {
+        await Promise.all(
+          selectedNotifications.map(
+            async (id) => await DelNotif.mutateAsync(id as any)
+          )
+        )
+          .then(({ data }: any) =>
+            TimerToast("success", "Notifikasi telah dihapus.", data.message)
+          )
+          .catch(({ response }: any) =>
+            TimerToast(
+              "error",
+              "Notifikasi gagal dihapus.",
+              response.data.message
+            )
+          )
+          .finally(() => {
+            queryClient.invalidateQueries({ queryKey: ["notifications"] });
+            DelNotif.reset();
+            setSelectedNotifications([]);
+          });
       }
-      setNotification((prevData) => {
-        const updatedNotifications = { ...prevData };
-        Object.keys(updatedNotifications).forEach((category) => {
-          updatedNotifications[category as NotificationCategories] =
-            updatedNotifications[category as NotificationCategories].filter(
-              (event) => !selectedNotifications.includes(event.id)
-            );
-        });
-        return updatedNotifications;
-      });
-      setSelectedNotifications([]);
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: `Error saat hapus notif!, ${error}`,
-        showConfirmButton: false,
-        timer: 1500,
-      });
-    }
-  };
+    });
+  }, [DelNotif, notif, selectedNotifications]);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        <div className="relative flex items-center">
-          {Object.values(notification).some(
-            (category) => category.length > 0
-          ) && (
-            <div className="absolute -translate-x-[3px] rounded-full bg-green-400">
-              <div className="w-full text-xs text-white px-[5px]">
-                {Object.values(notification).reduce(
-                  (total, category) => total + category.length,
-                  0
-                )}
-              </div>
-            </div>
-          )}
-          <svg
-            className="w-[34px] h-[34px] text-slate-800 dark:text-white"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            fill="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              d="M17.133 12.632v-1.8a5.406 5.406 0 0 1-4.154-5.262.955.955 0 0 0 .021-.106V3.1a1 1 0 0 0-2 0v2.364a.955.955 0 0 0 .021.106 5.406 5.406 0 0 0-4.154 5.262v1.8C6.867 15.018 5 15.614 5 16.807 5 17.4 5 18 5.538 18h12.924C19 18 19 17.4 19 16.807c0-1.193-1.867-1.789-1.867-4.175ZM10 6h4V4h-4v2Zm1 4a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Zm4 0a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Z"
-              clipRule="evenodd"
+    <Modal
+      isOpen={notificationModal}
+      trigger={{
+        onOpen: (
+          <div className="relative hover:cursor-pointer">
+            {(notif as Events[])?.length > 0 ? (
+              <Skeleton className="absolute top-0 right-0 size-3 bg-sky-500 rounded-full" />
+            ) : null}
+            <Bell
+              onClick={() => {
+                openModal("notificationModal");
+              }}
             />
-          </svg>
-        </div>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuLabel>
-          <h1 className="text-base">Notification</h1>
-          <button onClick={handleDeleteSelected} className="text-red-600">
-            Hapus yang Dipilih
-          </button>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
+          </div>
+        ),
+        onClose: (
+          <CloseButton
+            onClick={() => {
+              closeModal("notificationModal");
+            }}
+          />
+        ),
+      }}>
+      <Modal.Title>
+        <div className="flex flex-col gap-2 w-full">
+          <span>{(notif as any)?.length} Notification</span>
           <div className="p-2 grid grid-cols-2 gap-2">
             {Object.keys(filter).map((category) => (
               <div key={category} className="flex items-center">
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={filter[category as NotificationCategories]}
-                  onChange={() =>
-                    handleFilterChange(category as NotificationCategories)
+                  onCheckedChange={() =>
+                    handleCheckboxChange(category as NotificationCategories)
                   }
                   className="mr-2"
                 />
-                <label className="text-sm">{category}</label>
+                <Label className="text-sm">{category}</Label>
               </div>
             ))}
           </div>
-        </DropdownMenuGroup>
-        <DropdownMenuGroup>
-          <div className="max-h-[50vh] overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
-            {Object.keys(notification).every(
-              (category) =>
-                notification[category as NotificationCategories].length === 0
-            ) && (
-              <span className="text-sm text-gray-600">
-                <Badge color="warning" className="m-3">
-                  Tidak ada notifikasi
-                </Badge>
+          <div className="grid grid-cols-[2rem_1fr] gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Checkbox
+                    checked={
+                      selectedNotifications.length ===
+                      (notif as NotificationEvent[])?.length
+                    }
+                    onCheckedChange={handleSelectAll}
+                    className="w-full h-full"
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Pilih Semua</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <Button
+              className="w-full"
+              variant={"destructive"}
+              onClick={handleDeleteSelected}
+              disabled={selectedNotifications.length === 0}>
+              Hapus yang Dipilih
+            </Button>
+          </div>
+        </div>
+      </Modal.Title>
+      <Modal.Content>
+        {!isLoading ? (
+          <div className="ring ring-gray-400 rounded max-h-[50vh] px-4 py-2  overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+            {(notif as NotificationEvent[])?.length === 0 ? (
+              <span className="flex justify-center items-center text-sm text-gray-600">
+                <Badge color="warning">Tidak ada notifikasi</Badge>
               </span>
-            )}
-            {Object.entries(notification).map(([category, events]) =>
-              events.length > 0 &&
-              filter[category as NotificationCategories] ? (
-                <div key={category}>
-                  <DropdownMenuLabel>
-                    <h1 className="p-2">{category}</h1>
-                    <button
-                      onClick={() =>
-                        handleSelectAll(category as NotificationCategories)
-                      }
-                      className="text-blue-600">
-                      Pilih Semua
-                    </button>
-                  </DropdownMenuLabel>
-                  {events.map((event) => (
-                    <DropdownMenuItem
-                      key={event.id}
-                      className="grid grid-cols-12 text-sm">
-                      <div className="col-span-10">
-                        <input
-                          type="checkbox"
-                          checked={selectedNotifications.includes(event.id)}
-                          onChange={() => handleSelectNotification(event.id)}
-                          className="mr-2"
-                        />
-                        <span className="font-medium">{event.title}</span>
-                        <p className="text-xs text-gray-500">
-                          {format(
-                            new Date(event.start),
-                            "EEEE, dd MMM yyyy - HH:mm",
-                            {
-                              locale: id,
-                            }
-                          )}
-                        </p>
-                      </div>
-                      <div className="col-span-2 text-right">
-                        <button
-                          onClick={() => handleDelete(event.id)}
-                          className="text-red-600 text-xs">
-                          Hapus
-                        </button>
-                      </div>
-                    </DropdownMenuItem>
-                  ))}
+            ) : (
+              (notif as NotificationEvent[])?.map((event) => (
+                <div
+                  className="flex justify-between items-center"
+                  key={event.id}>
+                  <div className="grid grid-cols-[auto_1fr] grid-rows-2 gap-2">
+                    <Checkbox
+                      checked={selectedNotifications.includes(event.id)}
+                      onCheckedChange={() => handleSelectNotification(event.id)}
+                      className="row-span-2 self-center mr-2"
+                    />
+                    <span className="font-medium">
+                      <h1>
+                        <b>{event.title}</b> | <i>{event.category}</i>
+                      </h1>
+                    </span>
+                    <p className="col-start-2 row-start-2 text-xs text-gray-500">
+                      {dayjs(event.start).format("dddd, DD MMMM YYYY, HH:mm")}
+                    </p>
+                  </div>
+                  <Badge
+                    variant={"destructive"}
+                    onClick={async () =>
+                      await handleDeleteNotif(event.id).finally(() => {
+                        queryClient.invalidateQueries({
+                          queryKey: ["notifications"],
+                        });
+                        DelNotif.reset();
+                      })
+                    }
+                    className="hover:cursor-pointer">
+                    Hapus
+                  </Badge>
                 </div>
-              ) : null
+              ))
             )}
           </div>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        ) : (
+          <NotifLoading />
+        )}
+      </Modal.Content>
+    </Modal>
   );
 }

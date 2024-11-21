@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { format } from "date-fns";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,9 +23,18 @@ import {
 import clsx from "clsx";
 import { useFormStore } from "@/features/MainData/store/FormStore";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import dayjs from "@/lib/dayjs";
 
 interface FormConfig {
-  type: string;
+  type: "add" | "edit" | "upload" | "excel";
   onSubmit: (values: any) => void;
 }
 
@@ -75,20 +85,39 @@ export const DynamicForm = ({ type, onSubmit }: FormConfig) => {
                     key={idx}
                     control={form.control}
                     name={col.name as string}
-                    render={({ field: { value, ...fieldProps } }) => (
-                      <FormItem>
+                    render={({ field: { value, onChange } }) => (
+                      <FormItem className="mx-2 my-1">
                         <FormLabel>{col.label}</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            value={
-                              value
-                                ? new Date(value).toISOString().split("T")[0]
-                                : ""
-                            }
-                            {...fieldProps}
-                          />
-                        </FormControl>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal",
+                                  !value && "text-muted-foreground"
+                                )}>
+                                {value ? (
+                                  dayjs(value).format("dddd, DD MMM YYYY")
+                                ) : (
+                                  <span>Pilih tanggal</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={value}
+                              onSelect={(value) => {
+                                const wkwk = new Date();
+                                onChange(dayjs(value).format("YYYY-MM-DD"));
+                              }}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -102,7 +131,7 @@ export const DynamicForm = ({ type, onSubmit }: FormConfig) => {
                     control={form.control}
                     name={col.name as string}
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="mx-2 my-1">
                         <FormLabel>{col.label}</FormLabel>
                         <Select
                           onValueChange={field.onChange}
@@ -137,7 +166,7 @@ export const DynamicForm = ({ type, onSubmit }: FormConfig) => {
                     control={form.control}
                     name={col.name as string}
                     render={({ field: { value, onChange, ...fieldProps } }) => (
-                      <FormItem>
+                      <FormItem className="mx-2 my-1">
                         <FormLabel>{col.label}</FormLabel>
                         <FormControl>
                           <Input
@@ -164,7 +193,7 @@ export const DynamicForm = ({ type, onSubmit }: FormConfig) => {
                     control={form.control}
                     name={col.name as string}
                     render={({ field }) => (
-                      <FormItem className="space-y-3">
+                      <FormItem className="mx-2 my-1 space-y-3">
                         <FormLabel>{col.label}</FormLabel>
                         <FormControl>
                           <RadioGroup
@@ -200,7 +229,7 @@ export const DynamicForm = ({ type, onSubmit }: FormConfig) => {
                     control={form.control}
                     name={col.name as string}
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="mx-2 my-1">
                         <FormLabel>{col.label}</FormLabel>
                         <FormControl>
                           <Input type={col.type} {...field} />
@@ -214,8 +243,9 @@ export const DynamicForm = ({ type, onSubmit }: FormConfig) => {
           })}
         </div>
         <Button
+          disabled={form.formState.isSubmitting}
           type="submit"
-          className={clsx("w-full col-span-2", {
+          className={clsx("w-full col-span-2 rounded", {
             "bg-blue-700 hover:bg-blue-800": type === "add",
             "bg-yellow-600 hover:bg-yellow-700": type === "edit",
             "bg-green-600 hover:bg-green-700": type === "upload",

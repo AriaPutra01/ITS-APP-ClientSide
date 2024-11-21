@@ -20,8 +20,7 @@ export default function Header({ title }: { title: string | undefined }) {
         <Label className="truncate text-sm font-medium ring-2 p-1.5 rounded bg-slate-50">
           {RealtimeDate()}
         </Label>
-        {/* //TODO: Rombak notif */}
-        {/* <Notification /> */}
+        <Notification />
       </div>
     </header>
   );

@@ -44,27 +44,27 @@ export const KegiatanChart = () => {
     () => [
       {
         label: "Timeline Desktop",
-        color: "yellow",
+        color: "red",
         count: GetTimelineDesktop,
       },
       {
         label: "Booking Ruang Rapat",
-        color: "yellow",
+        color: "red",
         count: GetBookingRapat,
       },
       {
         label: "Jadwal Rapat",
-        color: "yellow",
+        color: "red",
         count: GetJadwalRapat,
       },
       {
         label: "Jadwal Cuti",
-        color: "yellow",
+        color: "red",
         count: GetJadwalCuti,
       },
       {
         label: "Meeting",
-        color: "yellow",
+        color: "red",
         count: GetMeeting,
       },
     ],
@@ -89,7 +89,7 @@ export const KegiatanChart = () => {
   }
 
   return (
-    <Card className="grid grid-cols-5 gap-2" title="Kegiatan" color="yellow">
+    <Card className="grid grid-cols-5 gap-2" title="Kegiatan" color="red">
       {Kegiatan.map((item, index) => (
         <Card.item key={index} color={item.color} label={item.label}>
           {item.count as any}

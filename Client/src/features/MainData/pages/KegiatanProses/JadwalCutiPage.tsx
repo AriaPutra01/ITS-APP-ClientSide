@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { id } from "date-fns/locale/id";
 import { format } from "date-fns";
 import clsx from "clsx";
+import { CalendarLoading } from "../../components/Elements/Loading/CalendarLoading";
 
 export default function JadwalCuti() {
   const {
     userDetails: { role },
   } = useToken();
 
-  const { data } = useFetchData({
+  const { data, isLoading } = useFetchData({
     queryKey: ["jadwalCutis"],
     axios: {
       url: "/jadwal-cuti",
@@ -78,12 +79,16 @@ export default function JadwalCuti() {
 
   return (
     <App services="Jadwal Cuti">
-      <Calendar
-        initialView="dayGridMonth"
-        data={data as Events[]}
-        mutation={{ post: Post, del: Del, invalidateKey: ["jadwalCutis"] }}
-        subLeftBar={subLeftBar}
-      />
+      {isLoading ? (
+        <CalendarLoading />
+      ) : (
+        <Calendar
+          initialView="dayGridMonth"
+          data={data as Events[]}
+          mutation={{ post: Post, del: Del, invalidateKey: ["jadwalCutis"] }}
+          subLeftBar={subLeftBar}
+        />
+      )}
     </App>
   );
 }

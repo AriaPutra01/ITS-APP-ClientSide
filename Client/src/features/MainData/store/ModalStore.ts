@@ -5,7 +5,9 @@ type Modal =
   | "editModal"
   | "showModal"
   | "deleteModal"
-  | "uploadModal";
+  | "uploadModal"
+  | "calendarModal"
+  | "notificationModal";
 
 interface ModalStore {
   modals: {
@@ -14,6 +16,8 @@ interface ModalStore {
     showModal: boolean;
     deleteModal: boolean;
     uploadModal: boolean;
+    calendarModal: boolean;
+    notificationModal: boolean;
   };
   openModal: (modalName: Modal) => void;
   closeModal: (modalName: Modal) => void;
@@ -27,6 +31,8 @@ export const useModalStore = create<ModalStore>((set) => ({
     showModal: false,
     deleteModal: false,
     uploadModal: false,
+    calendarModal: false,
+    notificationModal: false,
   },
   openModal: (modalName) =>
     set((state) => ({
@@ -44,6 +50,8 @@ export const useModalStore = create<ModalStore>((set) => ({
         showModal: false,
         deleteModal: false,
         uploadModal: false,
+        calendarModal: false,
+        notificationModal: false,
       },
     }),
 }));

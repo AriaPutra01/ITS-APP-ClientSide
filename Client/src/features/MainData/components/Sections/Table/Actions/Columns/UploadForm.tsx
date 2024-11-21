@@ -19,6 +19,8 @@ import {
 } from "@/features/MainData/store/FormStore";
 import { TimerToast } from "@/components/Elements/Toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
+import UploadLoading from "@/features/MainData/components/Elements/Loading/UploadLoading";
 
 interface UploadFormProps {
   title: string;
@@ -50,7 +52,7 @@ const UploadForm: React.FC<UploadFormProps> = ({
   const queryClient = useQueryClient();
 
   // GET FILES
-  const { data: GetFiles = [] } = useFetchData({
+  const { data: GetFiles = [], isLoading } = useFetchData({
     queryKey: ["files", initialData.ID],
     axios: {
       url: `${getUrl}/${initialData?.ID}`,
@@ -172,12 +174,17 @@ const UploadForm: React.FC<UploadFormProps> = ({
       isOpen={uploadModal}
       trigger={{
         onOpen: (
-          <UploadButton
-            onClick={() => {
-              openModal("uploadModal");
-              onOpen();
-            }}
-          />
+          <div className="relative">
+            {(GetFiles as any)?.length > 0 ? (
+              <Skeleton className="absolute -top-1 -left-1 size-4 bg-[blue] rounded-full" />
+            ) : null}
+            <UploadButton
+              onClick={() => {
+                openModal("uploadModal");
+                onOpen();
+              }}
+            />
+          </div>
         ),
         onClose: (
           <CloseButton
@@ -192,7 +199,7 @@ const UploadForm: React.FC<UploadFormProps> = ({
       <Modal.Content>
         <DynamicForm onSubmit={handleSubmit} type="upload" />
         <ul className="flex flex-col gap-[.5rem] mt-[1rem]">
-          {GetFiles &&
+          {!isLoading ? (
             (GetFiles as any)?.map((file: any, index: number) => (
               <li
                 key={index}
@@ -213,7 +220,10 @@ const UploadForm: React.FC<UploadFormProps> = ({
                   />
                 </div>
               </li>
-            ))}
+            ))
+          ) : (
+            <UploadLoading />
+          )}
         </ul>
       </Modal.Content>
     </Modal>
