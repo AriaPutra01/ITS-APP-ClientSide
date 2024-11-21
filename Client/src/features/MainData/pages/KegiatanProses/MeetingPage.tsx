@@ -185,6 +185,7 @@ export default function MeetingSchedule() {
         import: "/uploadMeeting",
         exportAll: true,
       }}
+      invalidateKey={["meetings"]}
       />
     </div>
   );

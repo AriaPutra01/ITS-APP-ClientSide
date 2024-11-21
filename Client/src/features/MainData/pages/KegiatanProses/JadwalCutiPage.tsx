@@ -44,7 +44,9 @@ export default function JadwalCuti() {
         {role === "admin" && <Excel link={{ 
           exportThis: "exportCuti",
           exportAll: true,
-          }} />}
+          }}
+          invalidateKey={["jadwalCutis"]}
+           />}
       </span>
       {/* LIST */}
       <div

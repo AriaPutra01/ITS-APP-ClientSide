@@ -179,6 +179,7 @@ export default function SuratKeluar() {
           import: "/uploadSuratKeluar",
           exportAll: true,
       }}
+      invalidateKey={["suratKeluars"]}
       />
     </div>
   );

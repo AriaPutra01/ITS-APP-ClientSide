@@ -177,6 +177,7 @@ export default function SuratMasuk() {
         import: "/uploadSuratMasuk",
         exportAll: true,
       }}
+      invalidateKey={["suratMasuks"]}
       />
     </div>
   );

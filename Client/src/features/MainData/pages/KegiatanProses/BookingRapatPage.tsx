@@ -45,7 +45,9 @@ export default function BookingRapat() {
           <Excel link={{ 
             exportThis: "exportBookingRapat",
             exportAll: true,
-           }} />
+           }}
+           invalidateKey={["bookingRapats"]}
+            />
         )}
       </span>
       {/* LIST */}

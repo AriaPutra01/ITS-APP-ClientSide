@@ -177,6 +177,7 @@ export default function Arsip() {
         import: "/importArsip",
         exportAll: true,
       }}
+      invalidateKey={["arsips"]}
       />
     </div>
   );

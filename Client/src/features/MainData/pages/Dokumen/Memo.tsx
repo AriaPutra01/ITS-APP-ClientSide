@@ -24,8 +24,6 @@ import { Excel } from "@/Utils/Excel";
 import { useFilterCheckbox } from "@/features/MainData/hooks/useFilterCheckbox";
 // MEMO
 import { MemoFields } from "@/features/MainData/config/formFields/Dokumen/Memo";
-import { Excel } from "@/Utils/Excel";
-import { useFilterCheckbox } from "../../hooks/useFilterCheckbox";
 
 export default function Memo() {
   // TOKEN

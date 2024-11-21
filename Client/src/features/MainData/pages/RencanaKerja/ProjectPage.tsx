@@ -192,6 +192,7 @@ export default function Project() {
         import: "/importProject",
         exportAll: true
       }}
+      invalidateKey={["projects"]}
       />
     </div>
   );

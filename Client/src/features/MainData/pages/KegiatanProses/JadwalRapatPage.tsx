@@ -44,7 +44,9 @@ export default function JadwalRapat() {
         {role === "admin" && <Excel link={{ 
           exportThis: "exportRapat",
           exportAll: true,
-          }} />}
+          }}
+          invalidateKey={["jadwalRapats"]}
+          />}
       </span>
       {/* LIST */}
       <div

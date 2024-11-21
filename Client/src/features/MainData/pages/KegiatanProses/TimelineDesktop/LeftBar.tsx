@@ -122,7 +122,9 @@ export default function LeftBar({ resourceId, setResourceId }: Props) {
           <Excel link={{ 
             exportThis: "/exportTimelineDesktop",
             exportAll: true,
-          }} />
+          }} 
+          invalidateKey={["resourceDesktops"]}
+          />
         )}
       </span>
       {/* LIST */}
