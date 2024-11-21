@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback } from "react";
 import Modal from "@/components/Elements/Modal";
 import { DynamicForm } from "@/features/MainData/components/Sections/Form/DynamicForm";
 import {
@@ -175,9 +175,6 @@ const UploadForm: React.FC<UploadFormProps> = ({
       trigger={{
         onOpen: (
           <div className="relative">
-            {(GetFiles as any)?.length > 0 ? (
-              <Skeleton className="absolute -top-1 -left-1 size-4 bg-[blue] rounded-full" />
-            ) : null}
             <UploadButton
               onClick={() => {
                 openModal("uploadModal");

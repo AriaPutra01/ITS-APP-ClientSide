@@ -49,12 +49,6 @@ export const ProjectFields = [
     validation: z.string().nullable(),
   },
   {
-    name: "div_inisiasi",
-    label: "Div Inisiasi",
-    type: "text",
-    validation: z.string().nullable(),
-  },
-  {
     name: "bulan",
     label: "Bulan",
     type: "month",

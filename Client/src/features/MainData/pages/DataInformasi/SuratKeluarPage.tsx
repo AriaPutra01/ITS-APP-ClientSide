@@ -20,9 +20,7 @@ import EditForm from "@/features/MainData/components/Sections/Table/Actions/Colu
 import UploadForm from "@/features/MainData/components/Sections/Table/Actions/Columns/UploadForm";
 import { useToken } from "@/hooks/useToken";
 import { Excel } from "@/Utils/Excel";
-import { useFilterCheckbox } from "@/features/MainData/hooks/useFilterCheckbox";
-
-// Arsip
+// SURAT KELUAR
 import { SuratKeluarFields } from "@/features/MainData/config/formFields/DataInformasi/SuratKeluar";
 
 export default function SuratKeluar() {
@@ -160,7 +158,7 @@ export default function SuratKeluar() {
         title={`Form tambah data Surat Keluar`}
         form={{
           mutation: PostSuratKeluar,
-          queryKey: ["arsips"],
+          queryKey: ["suratKeluars"],
           otherValue: { create_by: userDetails.username },
         }}
         event={{
@@ -174,12 +172,12 @@ export default function SuratKeluar() {
         }}
       />
       <Excel
-      link={{
-        exportThis: "/exportSuratKeluar",
+        link={{
+          exportThis: "/exportSuratKeluar",
           import: "/uploadSuratKeluar",
           exportAll: true,
-      }}
-      invalidateKey={["suratKeluars"]}
+        }}
+        invalidateKey={["suratKeluars"]}
       />
     </div>
   );
@@ -187,18 +185,17 @@ export default function SuratKeluar() {
   // FILTER NOSURAT
   const { filteredData, renderFilter } = useFilter({
     data: SuratKeluars,
-    filteredItem: "no_surat",
+    filteredItem: "title",
   });
 
-
   return (
-    <App services="Arsip">
+    <App services="Surat Keluar">
       <div className="p-4">
         {isLoading ? (
           <TableLoading />
         ) : (
           <Table
-            title="Data Arsip"
+            title="Data Surat Keluar"
             columns={columns}
             data={filteredData || []}
             CustomHeader={{

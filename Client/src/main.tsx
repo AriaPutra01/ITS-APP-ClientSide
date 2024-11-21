@@ -2,9 +2,10 @@ import "./index.css";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+//? import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Menit } from "@/lib/time";
 import { TokenProvider } from "./hooks/useToken";
+import { ErrorBoundary } from "./pages/Error/ErrorBoundary";
 // AUTH
 import { Login } from "@/features/Auth/pages/Login";
 // USER
@@ -36,7 +37,7 @@ import MeetingShcedule from "@/features/MainData/pages/KegiatanProses/MeetingLis
 import SuratMasuk from "@/features/MainData/pages/DataInformasi/SuratMasukPage";
 import SuratKeluar from "@/features/MainData/pages/DataInformasi/SuratKeluarPage";
 import Arsip from "@/features/MainData/pages/DataInformasi/ArsipPage";
-//REQUEST
+// REQUEST
 import Request from "@/features/MainData/pages/Request/requestPage";
 
 const queryClient = new QueryClient({
@@ -49,134 +50,145 @@ const queryClient = new QueryClient({
   },
 });
 
-const router = createBrowserRouter([
-  // WELCOME
+const WELCOME = [
   {
-    //* DONE
     path: "/",
     element: <Welcome />,
     errorElement: <NotFound />,
   },
-  // AUTH
+];
+
+const AUTH = [
   {
-    //* DONE
     path: "/login",
     element: <Login />,
   },
-  // USER
+];
+
+const DASHBOARD = [
   {
-    //* DONE
-    path: "/user",
-    element: <User />,
-  },
-  // DASHBOARD
-  {
-    //* DONE
     path: "/dashboard",
     element: <Dashboard />,
   },
-  // DOKUMEN
+];
+
+const DOCUMENT = [
   {
-    //* DONE
     path: "/memo",
     element: <Memo />,
   },
   {
-    //* DONE
     path: "/berita-acara",
     element: <BeritaAcara />,
   },
   {
-    //* DONE
     path: "/sk",
     element: <Sk />,
   },
   {
-    //* DONE
     path: "/surat",
     element: <Surat />,
   },
   {
-    //* DONE
     path: "/perjalanan-dinas",
     element: <Perdin />,
   },
-  // RENCANA KERJA
+];
+
+const PROJECT = [
   {
-    //* DONE
     path: "/project",
     element: <Project />,
   },
   {
-    //* DONE
     path: "/base-project",
     element: <BaseProject />,
   },
-  // KEGIATAN PROSES
+];
+
+const KEGIATAN = [
   {
-    //* DONE
     path: "/timeline-desktop",
     element: <TimelineDesktop />,
   },
   {
-    //* DONE
     path: "/booking-rapat",
     element: <BookingRapat />,
   },
   {
-    //* DONE
     path: "/jadwal-rapat",
     element: <JadwalRapat />,
   },
   {
-    //* DONE
     path: "/jadwal-cuti",
     element: <JadwalCuti />,
   },
   {
-    //* DONE
     path: "/meeting",
     element: <Meeting />,
   },
-  // WEEKLY MEETING
+];
+
+const WEEKLYMEETING = [
   {
-    //* DONE
     path: "/timeline-project",
     element: <TimelineProject />,
   },
   {
-    //* DONE
     path: "/meeting-schedule",
     element: <MeetingShcedule />,
   },
-  // DATA & INFORMASI
+];
+
+const INFORMASI = [
   {
-    //* DONE
     path: "/surat-masuk",
     element: <SuratMasuk />,
   },
   {
-    //* DONE
     path: "/surat-keluar",
     element: <SuratKeluar />,
   },
   {
-    //* DONE
     path: "/arsip",
     element: <Arsip />,
   },
+];
+
+const USER = [
   {
-    //* DONE
+    path: "/user",
+    element: <User />,
+  },
+];
+
+const REQUEST = [
+  {
     path: "/request",
     element: <Request />,
   },
+];
+
+const ROUTER = createBrowserRouter([
+  ...WELCOME,
+  ...AUTH,
+  ...DASHBOARD,
+  ...DOCUMENT,
+  ...PROJECT,
+  ...KEGIATAN,
+  ...WEEKLYMEETING,
+  ...INFORMASI,
+  ...USER,
+  ...REQUEST,
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
     <TokenProvider>
-      <RouterProvider router={router} />
+      <ErrorBoundary>
+        <RouterProvider router={ROUTER} />
+      </ErrorBoundary>
     </TokenProvider>
-    {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+    {/* //?  <ReactQueryDevtools initialIsOpen={false} /> */}
   </QueryClientProvider>
 );

@@ -18,7 +18,7 @@ import {
   User,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { TimerToast } from "../Elements/Toast";
+import { ConfirmToast, TimerToast } from "../Elements/Toast";
 
 const App = ({
   services,
@@ -41,15 +41,22 @@ const App = ({
 
   // HANDLE LOGOUT
   const handleSignOut = async () => {
-    await Logout.mutateAsync(undefined, {
-      onSuccess: ({ data }: any) => {
-        TimerToast("success", "Logout Berhasil!", data.message);
-        navigate("/login");
-      },
-      onError: ({ response }: any) => {
-        TimerToast("error", "Logout Gagal!", response.data.message);
-      },
-    });
+    ConfirmToast("warning", "Apakah anda yakin?", "Anda akan logout!").then(
+      async (result) => {
+        if (result.isConfirmed) {
+          await Logout.mutateAsync(undefined, {
+            onSuccess: ({ data }: any) => {
+              TimerToast("success", "Logout Berhasil!", data.message);
+            },
+            onError: ({ response }: any) => {
+              TimerToast("error", "Logout Gagal!", response.data.message);
+            },
+          }).then(() => {
+            navigate("/login");
+          });
+        }
+      }
+    );
   };
 
   return (
@@ -96,16 +103,16 @@ const App = ({
             <SidebarItem href="/surat-keluar" text="Surat Keluar" />
             <SidebarItem href="/arsip" text="Arsip" />
           </SidebarCollapse>
-          {userDetails.role !== "user" && (
-            <SidebarItem href="/user" text="User" icon={<User />} />
-          )}
-
-          {userDetails.role !== "user" && (
-            <SidebarItem
-              href="/request"
-              text="Request"
-              icon={<HandPlatterIcon />}
-            />
+          {/* AUTHORIZATION */}
+          {userDetails.role === "admin" && (
+            <>
+              <SidebarItem href="/user" text="User" icon={<User />} />
+              <SidebarItem
+                href="/request"
+                text="Request"
+                icon={<HandPlatterIcon />}
+              />
+            </>
           )}
           <SidebarItem
             onClick={handleSignOut}

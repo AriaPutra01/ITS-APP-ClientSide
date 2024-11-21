@@ -19,6 +19,7 @@ import { TimelineFields } from "@/config/FormConfig/timeline";
 import { useWindowSize } from "react-use";
 import { TimelineLoading } from "../../Elements/Loading/TimelineLoading";
 import dayjs from "@/lib/dayjs";
+import { useToken } from "@/hooks/useToken";
 
 interface Timeline {
   events: any;
@@ -255,6 +256,10 @@ function Timeline({ events, resources, mutation, leftCustomHeader }: Timeline) {
     [ConfirmToast, mutation, queryClient]
   );
 
+  const {
+    userDetails: { role },
+  } = useToken();
+
   return (
     <div
       className="noverflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
@@ -267,9 +272,9 @@ function Timeline({ events, resources, mutation, leftCustomHeader }: Timeline) {
           nextClick={nextClick}
           onSelectDate={onSelectDate}
           onViewChange={onViewChange}
-          eventItemClick={handleDeleteEvent}
+          eventItemClick={role === "admin" ? handleDeleteEvent : undefined}
           newEvent={newEvent}
-          slotClickedFunc={handleDelResource}
+          slotClickedFunc={role === "admin" ? handleDelResource : undefined}
           leftCustomHeader={leftCustomHeader}
           parentRef={parentRef}
         />

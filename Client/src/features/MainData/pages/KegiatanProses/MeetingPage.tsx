@@ -193,7 +193,7 @@ export default function MeetingSchedule() {
   // FILTER NOMEMO
   const { filteredData, renderFilter } = useFilter({
     data: Meeting,
-    filteredItem: "task",
+    filteredItem: "pic",
   });
 
   return (

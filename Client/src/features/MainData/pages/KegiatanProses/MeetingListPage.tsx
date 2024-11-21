@@ -180,12 +180,12 @@ export default function MeetingSchedule() {
         }}
       />
       <Excel
-      link={{
-        exportAll: true,
-        exportThis: "/exportMeetingList",
-        import: "/importMeetingList",
-      }}
-      invalidateKey={["shcedules"]}
+        link={{
+          exportAll: true,
+          exportThis: "/exportMeetingList",
+          import: "/importMeetingList",
+        }}
+        invalidateKey={["shcedules"]}
       />
     </div>
   );
@@ -193,7 +193,7 @@ export default function MeetingSchedule() {
   // FILTER NOMEMO
   const { filteredData, renderFilter } = useFilter({
     data: Schedule,
-    filteredItem: "hari",
+    filteredItem: "pic",
   });
 
   return (

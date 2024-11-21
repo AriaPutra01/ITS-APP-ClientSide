@@ -119,11 +119,12 @@ export default function LeftBar({ resourceId, setResourceId }: Props) {
           {(Resources as any)?.length} Resource
         </Button>
         {role === "admin" && (
-          <Excel link={{ 
-            exportThis: "/exportTimelineDesktop",
-            exportAll: true,
-          }} 
-          invalidateKey={["resourceDesktops"]}
+          <Excel
+            link={{
+              exportThis: "/exportTimelineDesktop",
+              exportAll: true,
+            }}
+            invalidateKey={["resourceDesktops"]}
           />
         )}
       </span>
@@ -187,7 +188,10 @@ export default function LeftBar({ resourceId, setResourceId }: Props) {
                   className="font-bold grid grid-cols-[1fr_auto] justify-between"
                   onClick={() => {
                     if (resourceId === event.id) {
-                      handleDelResource(event.id);
+                      // AUTHORIZATION
+                      if (role === "admin") {
+                        handleDelResource(event.id);
+                      }
                     } else {
                       setResourceId(event.id);
                     }

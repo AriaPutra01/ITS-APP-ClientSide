@@ -177,21 +177,22 @@ export default function Surat() {
         }}
       />
       <Excel
-      link={{
-        exportThis: "/exportSurat",
-        import: "/importSurat",
-        exportAll: true
-      }}
-      invalidateKey={["surats"]}
+        link={{
+          exportThis: "/exportSurat",
+          import: "/importSurat",
+          exportAll: true,
+        }}
+        invalidateKey={["surats"]}
       />
     </div>
   );
 
   // FILTER NOSURAT
-  const { filteredData: filteredData1, renderFilter: renderFilter1 } = useFilter({
-    data: Surats,
-    filteredItem: "no_surat",
-  });
+  const { filteredData: filteredData1, renderFilter: renderFilter1 } =
+    useFilter({
+      data: Surats,
+      filteredItem: "pic",
+    });
 
   const { filteredData: filteredData2, renderFilter: renderFilter2 } =
     useFilterCheckbox({

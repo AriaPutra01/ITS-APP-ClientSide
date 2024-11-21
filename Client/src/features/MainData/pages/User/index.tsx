@@ -17,8 +17,14 @@ import DeleteDialog from "@/features/MainData/components/Sections/Table/Actions/
 // USER
 import { UserFields } from "@/features/MainData/config/formFields/User";
 import { useSelectionDeletion } from "../../hooks/useSelectionDeletion";
+import { useToken } from "@/hooks/useToken";
+import NotFound from "@/pages/Error/404";
 
 export default function User() {
+  const {
+    userDetails: { role },
+  } = useToken();
+
   // FORM STORE
   const { initialData, setInitialData, setFields } = useFormStore();
 
@@ -33,6 +39,8 @@ export default function User() {
     axios: {
       url: "/user",
     },
+    // AUTHORIZATION
+    enabled: role === "admin",
   });
   const PostUser = usePostData({
     axios: {
@@ -123,28 +131,33 @@ export default function User() {
     filteredItem: "Username",
   });
 
-  return (
-    <App services="Users">
-      <div className="p-4">
-        {isLoading ? (
-          <TableLoading />
-        ) : (
-          <Table
-            title="Users"
-            columns={columns}
-            data={filteredData || []}
-            CustomHeader={{
-              left: renderSubHeader,
-              right: renderFilter,
-            }}
-            SelectedRows={{
-              title: "Hapus",
-              variant: "destructive",
-              action: handleSelectedDeletion,
-            }}
-          />
-        )}
-      </div>
-    </App>
-  );
+  // AUTHORIZATION
+  if (role === "Admin") {
+    return <NotFound />;
+  } else {
+    return (
+      <App services="Users">
+        <div className="p-4">
+          {isLoading ? (
+            <TableLoading />
+          ) : (
+            <Table
+              title="Users"
+              columns={columns}
+              data={filteredData || []}
+              CustomHeader={{
+                left: renderSubHeader,
+                right: renderFilter,
+              }}
+              SelectedRows={{
+                title: "Hapus",
+                variant: "destructive",
+                action: handleSelectedDeletion,
+              }}
+            />
+          )}
+        </div>
+      </App>
+    );
+  }
 }

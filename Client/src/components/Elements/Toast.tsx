@@ -1,10 +1,11 @@
+import { Detik } from "@/lib/time";
 import Swal from "sweetalert2";
 
 export const TimerToast = (
   icon: "error" | "success" | "info" | "warning" | "question",
   title: string,
   text?: string,
-  timer: number = 1500
+  timer: number = Detik(2)
 ) =>
   Swal.fire({
     icon: icon,

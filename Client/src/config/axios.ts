@@ -1,4 +1,5 @@
 import { useToken } from "@/hooks/useToken";
+import { Detik } from "@/lib/time";
 import axios from "axios";
 
 const useAxios = () => {
@@ -10,6 +11,7 @@ const useAxios = () => {
       Authorization: token ? `Bearer ${token}` : undefined,
     },
     withCredentials: true,
+    timeout: Detik(20),
   });
 
   return axiosInstance;

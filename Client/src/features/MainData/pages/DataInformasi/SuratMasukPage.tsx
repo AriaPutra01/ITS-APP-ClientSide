@@ -20,7 +20,7 @@ import EditForm from "@/features/MainData/components/Sections/Table/Actions/Colu
 import UploadForm from "@/features/MainData/components/Sections/Table/Actions/Columns/UploadForm";
 import { useToken } from "@/hooks/useToken";
 import { Excel } from "@/Utils/Excel";
-// Arsip
+// SURAT MASUK
 import { SuratMasukFields } from "@/features/MainData/config/formFields/DataInformasi/SuratMasuk";
 
 export default function SuratMasuk() {
@@ -158,7 +158,7 @@ export default function SuratMasuk() {
         title={`Form tambah data Surat Masuk`}
         form={{
           mutation: PostSuratMasuk,
-          queryKey: ["arsips"],
+          queryKey: ["suratMasuks"],
           otherValue: { create_by: userDetails.username },
         }}
         event={{
@@ -172,12 +172,12 @@ export default function SuratMasuk() {
         }}
       />
       <Excel
-      link={{
-        exportThis: "/exportSuratMasuk",
-        import: "/uploadSuratMasuk",
-        exportAll: true,
-      }}
-      invalidateKey={["suratMasuks"]}
+        link={{
+          exportThis: "/exportSuratMasuk",
+          import: "/uploadSuratMasuk",
+          exportAll: true,
+        }}
+        invalidateKey={["suratMasuks"]}
       />
     </div>
   );
@@ -185,7 +185,7 @@ export default function SuratMasuk() {
   // FILTER NOSURAT
   const { filteredData, renderFilter } = useFilter({
     data: SuratMasuks,
-    filteredItem: "no_surat",
+    filteredItem: "title",
   });
 
   return (

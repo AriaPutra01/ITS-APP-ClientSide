@@ -3,12 +3,6 @@ import z from "zod";
 // MEETINGSCHUDULE
 export const MeetingScheduleFields = [
   {
-    name: "hari",
-    label: "Hari",
-    type: "text",
-    validation: z.string().nullable(),
-  },
-  {
     name: "tanggal",
     label: "Tanggal",
     type: "date",

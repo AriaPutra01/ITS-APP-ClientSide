@@ -16,6 +16,7 @@ import { ExcelFields } from "@/config/FormConfig/excel";
 import { usePostData } from "@/features/MainData/hooks/useAPI";
 import clsx from "clsx";
 import { useQueryClient } from "@tanstack/react-query";
+import { useToken } from "@/hooks/useToken";
 
 type ExcelProps = {
   link?: {
@@ -29,9 +30,9 @@ type ExcelProps = {
 export function Excel({ link, invalidateKey }: ExcelProps) {
   const axiosInstance = useAxios();
 
-  const queryClient =useQueryClient()
+  const queryClient = useQueryClient();
 
-  const exportAll = async () => {
+  const exportAll = useCallback(async () => {
     try {
       const response = await axiosInstance.get("/exportAll", {
         responseType: "blob",
@@ -46,7 +47,7 @@ export function Excel({ link, invalidateKey }: ExcelProps) {
     } catch (error) {
       TimerToast("error", "Gagal!", "Error saat mengekspor data:");
     }
-  };
+  }, []);
 
   const Import = usePostData({
     axios: {
@@ -73,7 +74,7 @@ export function Excel({ link, invalidateKey }: ExcelProps) {
         .then(() => Import.reset())
         .finally(() => {
           queryClient.invalidateQueries({ queryKey: invalidateKey });
-          setFields([])
+          setFields([]);
         });
     },
     [Import]
@@ -89,53 +90,60 @@ export function Excel({ link, invalidateKey }: ExcelProps) {
     }
   }, [isOpen]);
 
-  return (
-    <div className="flex gap-1.5 items-center size-full justify-center">
-      <DropdownMenu open={isOpen} onOpenChange={(open) => setOpen(open)}>
-        <DropdownMenuTrigger className="size-full" asChild>
-          <Button className="bg-green-600 hover:bg-green-700 rounded">
-            Excel
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="flex flex-col gap-4 p-4">
-          {/* EXPORT */}
-          {link?.exportThis && (
-            <div
-              className={clsx(
-                { "grid-cols-2": link?.exportAll },
-                "grid grid-cols-1 gap-2 p-2 shadow"
-              )}>
-              <Label className="col-span-2">Export</Label>
-              <DropdownMenuItem
-                asChild
-                className="col-span-1 bg-green-600 hover:bg-green-700 text-white rounded">
-                <Link
-                  className="text-center w-full"
-                  to={`http://localhost:8080${link?.exportThis}`}>
-                  Sheet ini saja
-                </Link>
-              </DropdownMenuItem>
-              {link?.exportAll && (
+  const {
+    userDetails: { role },
+  } = useToken();
+
+  // AUTHORIZATION
+  if (role === "admin") {
+    return (
+      <div className="flex gap-1.5 items-center size-full justify-center">
+        <DropdownMenu open={isOpen} onOpenChange={(open) => setOpen(open)}>
+          <DropdownMenuTrigger className="size-full" asChild>
+            <Button className="bg-green-600 hover:bg-green-700 rounded">
+              Excel
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="flex flex-col gap-4 p-4">
+            {/* EXPORT */}
+            {link?.exportThis && (
+              <div
+                className={clsx(
+                  { "grid-cols-2": link?.exportAll },
+                  "grid grid-cols-1 gap-2 p-2 shadow"
+                )}>
+                <Label className="col-span-2">Export</Label>
                 <DropdownMenuItem
                   asChild
                   className="col-span-1 bg-green-600 hover:bg-green-700 text-white rounded">
-                  <span className="text-center w-full" onClick={exportAll}>
-                    Semua sheet
-                  </span>
+                  <Link
+                    className="text-center w-full"
+                    to={`http://localhost:8080${link?.exportThis}`}>
+                    Sheet ini saja
+                  </Link>
                 </DropdownMenuItem>
-              )}
-            </div>
-          )}
-          {/* END EXPORT */}
-          {/* IMPORT */}
-          {link?.import && (
-            <div className="p-2 shadow">
-              <DynamicForm onSubmit={handleSubmit} type="excel" />
-            </div>
-          )}
-          {/* END IMPORT */}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
+                {link?.exportAll && (
+                  <DropdownMenuItem
+                    asChild
+                    className="col-span-1 bg-green-600 hover:bg-green-700 text-white rounded">
+                    <span className="text-center w-full" onClick={exportAll}>
+                      Semua sheet
+                    </span>
+                  </DropdownMenuItem>
+                )}
+              </div>
+            )}
+            {/* END EXPORT */}
+            {/* IMPORT */}
+            {link?.import && (
+              <div className="p-2 shadow">
+                <DynamicForm onSubmit={handleSubmit} type="excel" />
+              </div>
+            )}
+            {/* END IMPORT */}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
+  }
 }

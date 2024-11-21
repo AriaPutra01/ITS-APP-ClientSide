@@ -194,28 +194,10 @@ export default function Perdin() {
   );
 
   // FILTER NO PERDIN
-  const { filteredData: filteredData1, renderFilter: renderFilter1 } = useFilter({
+  const { filteredData, renderFilter } = useFilter({
     data: Perdins,
-    filteredItem: "no_perdin",
+    filteredItem: "hotel",
   });
-
-  const { filteredData: filteredData2, renderFilter: renderFilter2 } =
-    useFilterCheckbox({
-      data: Perdins,
-      filter: { "ITS-ISO": true, "ITS-SAG": true },
-      filteredItem: "no_perdin",
-    });
-
-  // State untuk menyimpan hasil gabungan
-  const [finalFilteredData, setFinalFilteredData] = useState([]);
-
-  // Sinkronisasi hasil filter
-  useEffect(() => {
-    const intersectedData = filteredData1?.filter((item: any) =>
-      filteredData2.includes(item)
-    );
-    setFinalFilteredData(intersectedData);
-  }, [filteredData1, filteredData2]);
 
   return (
     <App services="Perdin">
@@ -226,15 +208,10 @@ export default function Perdin() {
           <Table
             title="Perdin"
             columns={columns}
-            data={finalFilteredData || []}
+            data={filteredData || []}
             CustomHeader={{
               left: renderSubHeader,
-              right: (
-                <div className="flex gap-4">
-                {renderFilter2}
-                {renderFilter1}
-              </div>
-              ),
+              right: renderFilter,
             }}
             SelectedRows={{
               title: "Hapus",

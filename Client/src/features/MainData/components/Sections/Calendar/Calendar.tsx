@@ -15,6 +15,7 @@ import { CalendarFields } from "@/config/FormConfig/calendar";
 import { ConfirmToast, TimerToast, Toast } from "@/components/Elements/Toast";
 import { CalendarForm } from "./Form/CalendarForm";
 import { Events } from "@/config/types";
+import { useToken } from "@/hooks/useToken";
 
 interface CalendarProps {
   initialView: "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "listMonth";
@@ -90,20 +91,16 @@ export const Calendar = ({
             }
           },
           onError: ({ response }: any) => {
-            Toast(
-              "error",
-              "Event gagal ditambahkan!",
-              response.data.message
-            );
+            Toast("error", "Event gagal ditambahkan!", response.data.message);
           },
         })
         .finally(() => {
-          handleCloseModal()
+          handleCloseModal();
           queryClient.invalidateQueries({
             queryKey: mutation?.invalidateKey,
-          })
-          mutation?.post.reset()
-        })
+          });
+          mutation?.post.reset();
+        });
     },
     [mutation?.post, initialData]
   );
@@ -141,6 +138,10 @@ export const Calendar = ({
     },
     [mutation?.del, queryClient, ConfirmToast]
   );
+
+  const {
+    userDetails: { role },
+  } = useToken();
 
   return (
     <div
@@ -190,9 +191,9 @@ export const Calendar = ({
           selectable={true}
           selectMirror={true}
           dayMaxEvents={true}
-          events={data || []  }
+          events={data || []}
           select={handleDateClick}
-          eventClick={handleEventClick}
+          eventClick={role === "admin" ? handleEventClick : undefined}
         />
       </div>
 

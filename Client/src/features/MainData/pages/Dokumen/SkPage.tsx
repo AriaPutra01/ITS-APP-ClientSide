@@ -190,7 +190,7 @@ export default function Sk() {
   // FILTER NOSURAT
   const { filteredData: filteredData1, renderFilter: renderFilter1 } = useFilter({
     data: Sk,
-    filteredItem: "no_surat",
+    filteredItem: "pic",
   });
 
   const { filteredData: filteredData2, renderFilter: renderFilter2 } =

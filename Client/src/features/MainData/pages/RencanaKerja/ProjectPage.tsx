@@ -200,7 +200,7 @@ export default function Project() {
   // FILTER NOSURAT
   const { filteredData: filteredData1, renderFilter: renderFilter1 } = useFilter({
     data: Projects,
-    filteredItem: "kode_project",
+    filteredItem: "pic",
   });
 
   const { filteredData: filteredData2, renderFilter: renderFilter2 } =

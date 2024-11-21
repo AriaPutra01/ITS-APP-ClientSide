@@ -175,8 +175,8 @@ export default function BeritaAcara() {
             setFields([]);
           },
         }}
-        />
-        <Excel
+      />
+      <Excel
         link={{
           exportThis: "/exportBeritaAcara",
           import: "/uploadBeritaAcara",
@@ -188,10 +188,11 @@ export default function BeritaAcara() {
   );
 
   // FILTER NOSURAT
-  const { filteredData: filteredData1, renderFilter: renderFilter1 } = useFilter({
-    data: beritaAcaras,
-    filteredItem: "no_surat",
-  });
+  const { filteredData: filteredData1, renderFilter: renderFilter1 } =
+    useFilter({
+      data: beritaAcaras,
+      filteredItem: "pic",
+    });
 
   const { filteredData: filteredData2, renderFilter: renderFilter2 } =
     useFilterCheckbox({
@@ -200,7 +201,7 @@ export default function BeritaAcara() {
       filteredItem: "no_surat",
     });
 
-    // State untuk menyimpan hasil gabungan
+  // State untuk menyimpan hasil gabungan
   const [finalFilteredData, setFinalFilteredData] = useState([]);
 
   // Sinkronisasi hasil filter
@@ -210,7 +211,6 @@ export default function BeritaAcara() {
     );
     setFinalFilteredData(intersectedData);
   }, [filteredData1, filteredData2]);
-
 
   return (
     <App services="Berita Acara">
@@ -224,7 +224,7 @@ export default function BeritaAcara() {
             data={finalFilteredData || []}
             CustomHeader={{
               left: renderSubHeader,
-              right:(
+              right: (
                 <div className="flex gap-4">
                   {renderFilter2}
                   {renderFilter1}

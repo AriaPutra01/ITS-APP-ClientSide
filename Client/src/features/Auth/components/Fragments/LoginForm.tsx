@@ -32,12 +32,11 @@ export default function LoginForm() {
       await Login.mutateAsync(values as any, {
         onSuccess: ({ data }: any) => {
           Toast("success", "Login Berhasil!", data.message);
-          navigate("/dashboard");
         },
         onError: ({ response }: any) => {
           Toast("error", "Login Gagal!", response.data.message);
         },
-      });
+      }).then(() => navigate("/dashboard"));
     },
     [Login]
   );

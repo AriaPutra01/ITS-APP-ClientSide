@@ -5,6 +5,7 @@ import { CloseButton, DeleteButton } from "../Buttons";
 import { useModalStore } from "@/features/MainData/store/ModalStore";
 import { UseMutationResult, useQueryClient } from "@tanstack/react-query";
 import { TimerToast } from "@/components/Elements/Toast";
+import { useToken } from "@/hooks/useToken";
 
 interface DeleteDialogProps {
   title: string;
@@ -50,33 +51,40 @@ const DeleteAction: React.FC<DeleteDialogProps> = ({
     [mutation]
   );
 
-  return (
-    <Modal
-      isOpen={deleteModal}
-      trigger={{
-        onOpen: (
-          <DeleteButton
-            onClick={() => {
-              openModal("deleteModal");
-              onOpen();
-            }}
-          />
-        ),
-        onClose: (
-          <CloseButton
-            onClick={() => {
-              closeModal("deleteModal");
-              onClose();
-            }}
-          />
-        ),
-      }}>
-      <Modal.Title>{title}</Modal.Title>
-      <Modal.Content>
-        <DeleteDialog onSubmit={() => handleDelete(id)} />
-      </Modal.Content>
-    </Modal>
-  );
+  const {
+    userDetails: { role },
+  } = useToken();
+
+  // AUTHORIZATION
+  if (role === "admin") {
+    return (
+      <Modal
+        isOpen={deleteModal}
+        trigger={{
+          onOpen: (
+            <DeleteButton
+              onClick={() => {
+                openModal("deleteModal");
+                onOpen();
+              }}
+            />
+          ),
+          onClose: (
+            <CloseButton
+              onClick={() => {
+                closeModal("deleteModal");
+                onClose();
+              }}
+            />
+          ),
+        }}>
+        <Modal.Title>{title}</Modal.Title>
+        <Modal.Content>
+          <DeleteDialog onSubmit={() => handleDelete(id)} />
+        </Modal.Content>
+      </Modal>
+    );
+  }
 };
 
 export default DeleteAction;
